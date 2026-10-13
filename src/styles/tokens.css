@@ -1,0 +1,234 @@
+/* =============================================================================
+   Quantmetrics-Lab · Design tokens
+   -----------------------------------------------------------------------------
+   Raw CSS custom properties. Single source of truth for colour, hairlines,
+   text levels, accents, radii, spacing, containers and motion.
+   These raw tokens are mapped into Tailwind's theme namespaces in
+   src/app/globals.css (@theme inline) so components never hard-code values.
+
+   Dark is the default (:root). The light overrides live in [data-theme="light"]
+   and mirror the prefers-color-scheme fallback further down, which only
+   applies when the inline theme script has not run (JavaScript disabled).
+
+   Do not reference these raw tokens directly in components where a mapped
+   Tailwind utility exists (e.g. use `bg-bg-elev`, not `style={{...}}`).
+
+   The dark block is attached to [data-theme="dark"] as well as :root so a
+   forced-theme island inside either theme resolves correctly (see /styleguide).
+   ============================================================================= */
+
+:root,
+[data-theme="dark"] {
+  /* tells the UA to render native UI (scrollbars, form controls)
+     in dark mode; switched with the theme below. */
+  color-scheme: dark;
+
+  /* --- surfaces --------------------------------------------------------- */
+  --bg: #0f0f0f;
+  --bg-elev: #161616;
+  --bg-hover: #2b2b2b;
+  /* Theme-invariant near-black canvas for bands that must stay dark in both
+     themes (the Services hero). It holds the dark theme's --bg value, so the
+     band reads as "the dark theme" whichever theme is active; the light block
+     below deliberately does not override it. */
+  --surface-deep: #0f0f0f;
+
+  /* --- hairlines & text levels ------------------------------------------ */
+  --line: rgba(255, 255, 255, 0.14);
+  /* Crisp, full-length hairline for the blueprint bands (stats / trust strips).
+     Unlike --line this is never faded or masked, so it runs edge to edge and
+     into the corners. One knob: raise it to #ffffff for literal pure white. */
+  --line-strong: rgba(255, 255, 255, 0.5);
+  /* Footer / blueprint grid frame: a 1px line at 30% alpha, so a ruled grid reads
+     as structure rather than as a stack of cards. It is theme-aware (see the
+     light overrides below), because a white hairline on the light canvas would
+     be invisible. One knob: raise the alpha for a harder grid. */
+  --line-grid: rgba(255, 255, 255, 0.3);
+  --text: #ffffff;
+  --text-muted: #a3a3a3;
+  --text-dim: #6b6b6b;
+
+  /* --- brand & accents (identical in both themes) ----------------------- */
+  --teal: #1fa57c;
+  --teal-alt: #22a085;
+  --periwinkle: #4a6fd4;
+  --periwinkle-alt: #3e5fc9;
+  --lavender-overlay: rgba(120, 150, 225, 0.65);
+  --coral: #e8548a;
+  --coral-alt: #f07b6b;
+  --amber: #f6c94c;
+  --amber-alt: #f0975a;
+  --lilac: #c9a5e8;
+  --positive: #22c58b;
+  --negative: #f0597a;
+
+  /* --- radii ------------------------------------------------------------ */
+  --r-pill: 9999px;
+  --r-card: 24px;
+  --r-menu: 0px;
+  --r-input: 8px;
+  --r-sm: 4px;
+  --r-row: 20px;
+
+  /* --- spacing scale (8px base unit) ------------------------------------ */
+  --space-0-5: 4px;
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --space-5: 40px;
+  --space-6: 48px;
+  --space-8: 64px;
+  --space-10: 80px;
+  --space-12: 96px;
+  --space-16: 128px;
+  --space-20: 160px;
+
+  /* --- containers & section rhythm -------------------------------------- */
+  --container-max: 1530px;
+  --gutter: 16px;
+  --section-y: 96px;
+
+  /* --- focus ------------------------------------------------------------ */
+  --focus-ring: var(--periwinkle);
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+
+  /* --- motion ----------------------------------------------------------- */
+  --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dur-hover: 150ms;
+  --dur-menu: 180ms;
+  --dur-base: 250ms;
+  /* Card gradient fill on hover: the brief pins it to 200ms. */
+  --dur-fill: 200ms;
+  --dur-reveal: 600ms;
+  /* Slow drift of the hero mesh blobs: the brief pins it to 20-30s. */
+  --dur-drift: 26s;
+  /* Stream of the Services hero wave dashes: slow enough to read as flow. */
+  --dur-wave: 22s;
+
+  /* --- half-step derivations & gradient fills (added in stage 2) --------
+     `--fill-*` are theme-aware: they resolve `--text` lazily, so a light
+     island inside a dark page gets the light fill automatically.
+     Gradients are built only from accent tokens, so they look identical in
+     both themes. `--on-gradient*` is the only place a literal white lives,
+     because text on a gradient is white in both themes. */
+  /* Note: build tooling emits a solid `var(--text)` fallback inside @supports
+     for engines without color-mix() (pre-2023); everywhere else the wash is
+     the specified 8% / 6%. */
+  --fill-soft: color-mix(in srgb, var(--text) 8%, transparent);
+  --fill-faint: color-mix(in srgb, var(--text) 6%, transparent);
+
+  --gradient-teal-blue: linear-gradient(135deg, var(--teal) 0%, var(--periwinkle) 100%);
+  --gradient-pink-coral: linear-gradient(135deg, var(--coral) 0%, var(--coral-alt) 100%);
+  --gradient-sunset: linear-gradient(150deg, var(--amber) 0%, var(--coral) 52%, var(--coral-alt) 100%);
+
+  /* Glow over the theme-invariant dark canvas (the Services hero). Built only
+     from accent tokens, so it is identical in both themes, like the gradients
+     above. */
+  --gradient-deep-halo:
+    radial-gradient(
+      58% 68% at 16% 20%,
+      color-mix(in srgb, var(--teal) 40%, transparent) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      70% 82% at 84% 72%,
+      color-mix(in srgb, var(--periwinkle) 46%, transparent) 0%,
+      transparent 100%
+    );
+
+  /* Vertical-streak sunset: the closing CTA banner on the home page. A coral
+     pink field under a repeating vertical streak. Every colour is an accent or
+     an on-gradient token, so the banner looks the same in both themes. The
+     streak pitch and softness are tokens too, so a second band can match it.
+     The streak gap is written as rgba() rather than "transparent" so engines
+     interpolate it without the grey fringe. The repeat is a symmetric triangle
+     (gap -> line at the half pitch -> gap) rather than a hard-edged band, so
+     the tile boundary never shows as a seam once the layer is blurred. */
+  --streak-width: 190px;
+  --streak-blur: 30px;
+  --streak-line: rgba(255, 255, 255, 0.24);
+  --streak-gap: rgba(255, 255, 255, 0);
+  --gradient-streak-sunset:
+    repeating-linear-gradient(
+      90deg,
+      var(--streak-gap) 0,
+      var(--streak-line) calc(var(--streak-width) / 2),
+      var(--streak-gap) var(--streak-width)
+    ),
+    linear-gradient(105deg, var(--amber) 0%, var(--coral) 52%, var(--coral-alt) 100%);
+
+  --on-gradient: #ffffff;
+  --on-gradient-muted: rgba(255, 255, 255, 0.82);
+  --on-gradient-dim: rgba(255, 255, 255, 0.62);
+  --on-gradient-line: rgba(255, 255, 255, 0.28);
+  /* The blueprint band hairline while it sits over the gradient mesh. */
+  --on-gradient-line-strong: rgba(255, 255, 255, 0.72);
+  /* Ink for chips and pills that sit *on* a gradient (the white CTA pill's
+     label, the logo pill's wordmark) and the hover wash beside them. */
+  --on-gradient-ink: #0f0f0f;
+  --on-gradient-hover: rgba(255, 255, 255, 0.16);
+
+  /* --- gradient-mesh artwork (hero backdrop) ---------------------------- */
+  /* Blob softness: the brief pins it to the 80-120px band. */
+  --mesh-blur: 100px;
+  /* Strength of the grain layer laid over the mesh. */
+  --grain-opacity: 0.04;
+}
+
+/* -----------------------------------------------------------------------------
+   Light theme. Keep this block and the prefers-color-scheme fallback in sync.
+   Accents, radii, spacing and motion are theme-invariant.
+   -------------------------------------------------------------------------- */
+[data-theme="light"] {
+  color-scheme: light;
+
+  --bg: #fafaf7;
+  --bg-elev: #ffffff;
+  --bg-hover: #edede8;
+  --line: rgba(15, 15, 15, 0.14);
+  --line-strong: rgba(15, 15, 15, 0.5);
+  --line-grid: rgba(15, 15, 15, 0.3);
+  --text: #0f0f0f;
+  --text-muted: #5c5c5c;
+  --text-dim: #8a8a8a;
+}
+
+/* No-JS fallback: honour the OS preference until the inline script sets
+   data-theme (which it always does when JavaScript is available). */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    color-scheme: light;
+
+    --bg: #fafaf7;
+    --bg-elev: #ffffff;
+    --bg-hover: #edede8;
+    --line: rgba(15, 15, 15, 0.14);
+    --line-strong: rgba(15, 15, 15, 0.5);
+    --line-grid: rgba(15, 15, 15, 0.3);
+    --text: #0f0f0f;
+    --text-muted: #5c5c5c;
+    --text-dim: #8a8a8a;
+  }
+}
+
+/* --- responsive rhythm (360 / 768 / 1024 / 1440 / 1920) ------------------ */
+@media (min-width: 768px) {
+  :root {
+    --gutter: 24px;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --gutter: 32px;
+    --section-y: 128px;
+  }
+}
+
+@media (min-width: 1440px) {
+  :root {
+    --section-y: 160px;
+  }
+}

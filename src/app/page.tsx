@@ -1,0 +1,40 @@
+import type { Metadata } from "next";
+
+import { AnalyticsBand } from "@/components/marketing/AnalyticsBand";
+import { AudienceTabs } from "@/components/marketing/AudienceTabs";
+import { CapabilityGrid } from "@/components/marketing/CapabilityGrid";
+import { FeatureTrio } from "@/components/marketing/FeatureTrio";
+import { Hero } from "@/components/marketing/Hero";
+import { LatestBriefs } from "@/components/marketing/LatestBriefs";
+import { TrustStrip } from "@/components/marketing/TrustStrip";
+import { SampleDataPanel } from "@/components/marketing/SampleDataPanel";
+
+export const metadata: Metadata = {
+  title: {
+    absolute: "Quantmetrics-Lab \u2014 Quantitative intelligence for the rhythm of markets",
+  },
+  description:
+    "Institutional-grade quantitative research: backtesting, econometric modelling, risk analytics and AI-generated market briefs. Built for researchers, traders and newcomers - for research and education only, not investment advice.",
+  openGraph: {
+    type: "website",
+    url: "https://quantmetrics.online",
+    title: "Quantmetrics-Lab \u2014 Quantitative intelligence for the rhythm of markets",
+    description:
+      "Institutional-grade data analysis, research and AI-generated briefs, in one lab. For research and education only, not investment advice.",
+  },
+};
+
+export default function HomePage() {
+  return (
+    <>
+      <Hero />
+      <TrustStrip />
+      <CapabilityGrid />
+      <AudienceTabs />
+      <FeatureTrio />
+      <SampleDataPanel />
+      <LatestBriefs />
+      <AnalyticsBand />
+    </>
+  );
+}

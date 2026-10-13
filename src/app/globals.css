@@ -1,0 +1,387 @@
+@import "tailwindcss";
+@import "../styles/tokens.css";
+
+/* -----------------------------------------------------------------------------
+   Theming
+   The theme is written to <html data-theme="dark|light"> by the inline script in
+   src/lib/theme.ts before first paint. `dark:` therefore keys off the attribute
+   rather than the OS preference so an explicit user choice always wins.
+   -------------------------------------------------------------------------- */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* -----------------------------------------------------------------------------
+   Tailwind theme mapping.
+   `inline` keeps the utility declarations pointing at the raw tokens, so
+   switching themes only swaps custom-property values - no recompilation,
+   no duplicated utilities, no hard-coded values in components.
+   -------------------------------------------------------------------------- */
+@theme inline {
+  /* colours */
+  --color-bg: var(--bg);
+  --color-bg-elev: var(--bg-elev);
+  --color-bg-hover: var(--bg-hover);
+
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-line-grid: var(--line-grid);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-text-dim: var(--text-dim);
+
+  --color-teal: var(--teal);
+  --color-teal-alt: var(--teal-alt);
+  --color-periwinkle: var(--periwinkle);
+  --color-periwinkle-alt: var(--periwinkle-alt);
+  --color-lavender: var(--lavender-overlay);
+  --color-coral: var(--coral);
+  --color-coral-alt: var(--coral-alt);
+  --color-amber: var(--amber);
+  --color-amber-alt: var(--amber-alt);
+  --color-lilac: var(--lilac);
+  --color-positive: var(--positive);
+  --color-negative: var(--negative);
+
+  /* derived surfaces & on-gradient text (stage 2) */
+  --color-fill-soft: var(--fill-soft);
+  --color-fill-faint: var(--fill-faint);
+  --color-on-gradient: var(--on-gradient);
+  --color-on-gradient-muted: var(--on-gradient-muted);
+  /* theme-invariant dark canvas (Services hero) */
+  --color-surface-deep: var(--surface-deep);
+
+  /* radii (mapped from the raw --r-* tokens to avoid self-reference) */
+  --radius-pill: var(--r-pill);
+  --radius-card: var(--r-card);
+  --radius-menu: var(--r-menu);
+  --radius-input: var(--r-input);
+  --radius-sm: var(--r-sm);
+  --radius-row: var(--r-row);
+
+  /* containers */
+  --container-page: var(--container-max);
+
+  /* fonts (supplied by next/font in src/app/layout.tsx) */
+  --font-display: var(--font-newsreader), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-inter-tight), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, "SFMono-Regular", monospace;
+
+  /* spacing base: the design system uses an 8px scale, so every Tailwind
+     spacing utility is a multiple of 8px (p-2 = 16px, py-12 = 96px). */
+  --spacing: 0.5rem;
+  /* The responsive page gutter (16 -> 24 -> 32px) is on the same 8px scale,
+     so it is exposed as a named spacing step: inset-x-gutter, px-gutter. */
+  --spacing-gutter: var(--gutter);
+}
+
+/* -----------------------------------------------------------------------------
+   Typography scale. Clamps keep the scale responsive without variants.
+   -------------------------------------------------------------------------- */
+@utility text-hero {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(2.5rem, 5.4vw, 5rem);
+  line-height: 1.03;
+  letter-spacing: -0.02em;
+}
+
+@utility text-h2 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(2rem, 3.9vw, 3.5rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+@utility text-article-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(2rem, 3.4vw, 3rem);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+}
+
+@utility text-section-heading {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(1.75rem, 2.5vw, 2.5rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+@utility text-card-title {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 1.75rem;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+/* Titles inside the bordered capability cells: 18px, medium (brief F1.4). */
+@utility text-cell-title {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 1.125rem;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+}
+
+@utility text-body {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: 1rem;
+  line-height: 1.6;
+  letter-spacing: -0.01em;
+}
+
+/* Article/standfirst body copy: 18/1.7 */
+@utility text-body-lg {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: 1.125rem;
+  line-height: 1.7;
+  letter-spacing: -0.01em;
+}
+
+/* Card support copy: 14/1.4, muted. */
+@utility text-meta {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  color: var(--text-muted);
+}
+
+/* Buttons, tabs, eyebrows, stat captions. */
+@utility text-mono-label {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 0.8125rem;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* -----------------------------------------------------------------------------
+   Layout utilities
+   -------------------------------------------------------------------------- */
+@utility container-page {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/* Third-party logo artwork in the trust strip is stored as white-only PNGs and
+   painted through a mask, so every mark takes its colour from currentColor${n}   and therefore follows the active theme instead of disappearing on the light
+   canvas. The source is supplied per mark with the --mark-src property. */
+@utility mark-mask {
+  -webkit-mask-image: var(--mark-src);
+  mask-image: var(--mark-src);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+/* Stat number: 40px grotesk sans (Inter Tight), used by StatCell and the
+   stats bands. The display serif stays reserved for headlines. */
+@utility text-stat {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: 2.5rem;
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+}
+
+/* Gradient fills. Built from accent tokens, so they are identical in both
+   themes; pair them with `text-on-gradient` / `text-on-gradient-muted`. */
+@utility gradient-teal-blue {
+  background-image: var(--gradient-teal-blue);
+}
+
+@utility gradient-pink-coral {
+  background-image: var(--gradient-pink-coral);
+}
+
+@utility gradient-sunset {
+  background-image: var(--gradient-sunset);
+}
+
+/* Vertical-streak sunset: the closing CTA banner. */
+@utility gradient-streak-sunset {
+  background-image: var(--gradient-streak-sunset);
+}
+
+/* -----------------------------------------------------------------------------
+   Services hero artwork.
+   `deep-halo` lays the accent-only glow over the theme-invariant dark canvas and
+   `wave-flow` streams the dashed highlight along each thin line. Both read their
+   values from tokens, and the reduce-motion branch below stops the stream.
+   -------------------------------------------------------------------------- */
+@utility deep-halo {
+  background-image: var(--gradient-deep-halo);
+}
+
+@utility wave-flow {
+  animation: wave-flow var(--dur-wave) linear infinite;
+}
+
+@keyframes wave-flow {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: -1200;
+  }
+}
+
+/* -----------------------------------------------------------------------------
+   On-gradient tone.
+   Everything that sits directly on a gradient field - the hero and the floating
+   header while it is over the hero - re-points the surface/text tokens for its
+   own subtree, so no component needs an "on gradient" variant: `text-text`,
+   `border-line`, `bg-text` and the hover washes all follow from the five lines
+   below. The gradient keeps its dark-teal field in both themes, so this tone is
+   theme-invariant, like the gradients themselves.
+   -------------------------------------------------------------------------- */
+@utility on-gradient-tone {
+  --line-strong: var(--on-gradient-line-strong);
+  --text: var(--on-gradient);
+  --text-muted: var(--on-gradient-muted);
+  --text-dim: var(--on-gradient-dim);
+  --line: var(--on-gradient-line);
+  --bg: var(--on-gradient-ink);
+  --bg-hover: var(--on-gradient-hover);
+}
+
+/* -----------------------------------------------------------------------------
+   Gradient-mesh artwork (hero backdrop).
+   Blobs are radial gradients built from the accent tokens, softened with a
+   80-120px blur and drifted slowly. Colours come from `--mesh-blob-color`, set
+   per blob, so one utility covers the whole mesh.
+   -------------------------------------------------------------------------- */
+@utility mesh-blob {
+  position: absolute;
+  border-radius: var(--r-pill);
+  background-image: radial-gradient(closest-side, var(--mesh-blob-color) 0%, transparent 100%);
+  filter: blur(var(--mesh-blur));
+  animation: mesh-drift var(--dur-drift) var(--ease-standard) infinite alternate;
+}
+
+/* 4% grain, generated from an inline SVG so the hero ships no bitmap. */
+@utility grain-overlay {
+  position: absolute;
+  inset: 0;
+  opacity: var(--grain-opacity);
+  background-size: 160px 160px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23g)' opacity='0.7'/%3E%3C/svg%3E");
+}
+
+@keyframes mesh-drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(6%, -5%, 0) scale(1.16);
+  }
+}
+
+/* The reduced-motion branch of the global base rule would freeze the blobs at
+   the end of the animation; pin them to the start state instead. */
+@media (prefers-reduced-motion: reduce) {
+  .mesh-blob {
+    animation: none;
+  }
+
+  .wave-flow {
+    animation: none;
+  }
+}
+@layer components {
+  .section-y {
+    padding-block: var(--section-y);
+  }
+
+  /* Scroll reveal (section E): 600ms fade + 16px rise. The initial hidden state
+     is armed only once the inline script has marked the document as scripted,
+     so a no-JS visitor or a crawler always sees the content. */
+  html.js .reveal {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  html.js .reveal[data-revealed="true"] {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity var(--dur-reveal) var(--ease-standard),
+      transform var(--dur-reveal) var(--ease-standard);
+  }
+}
+
+/* -----------------------------------------------------------------------------
+   Base
+   -------------------------------------------------------------------------- */
+@layer base {
+  /* Default hairline colour for every `border` utility. */
+  *,
+  ::before,
+  ::after {
+    border-color: var(--line);
+  }
+
+  html {
+    background-color: var(--bg);
+    color: var(--text);
+    /* Fixed header: keep anchor targets (e.g. /services#research) clear of the bar. */
+    scroll-padding-top: calc(var(--space-8) + var(--space-1));
+  }
+
+  body {
+    min-height: 100dvh;
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.6;
+    letter-spacing: -0.01em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition:
+      background-color var(--dur-base) var(--ease-standard),
+      color var(--dur-base) var(--ease-standard);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-weight: 400;
+    text-wrap: balance;
+  }
+
+  ::selection {
+    background-color: var(--lavender-overlay);
+    color: var(--text);
+  }
+
+  :focus-visible {
+    outline: var(--focus-ring-width) solid var(--focus-ring);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
