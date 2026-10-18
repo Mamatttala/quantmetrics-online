@@ -1,0 +1,89 @@
+---
+title: "Reading a yield-curve inversion as a historical pattern"
+date: "2026-09-18"
+category: MACRO
+tags:
+  - Yield curve
+  - Term spread
+  - Regimes
+summary: "An inversion is easy to name and hard to interpret. A short note on why the term spread is read as a state rather than a signal, what the historical record does and does not support, and why the lag between an inversion and the thing it is known for is the part most often misread."
+takeaways:
+  - "An inversion is a level of the term spread relative to zero, not a change in it. Naming one is arithmetic, not analysis."
+  - "The historical association is a lag, not a trigger: the spread can sit below zero for a long stretch before anything else in the data turns."
+  - "The record is small, because the variable is slow. It supports a description of a pattern, never a probability."
+  - "All figures below are illustrative sample values produced by the lab's simulator, not observed market data."
+methodology: "The term spread is built from two illustrative rate series and inspected as a level, a sign and a duration. An inversion episode is counted as a contiguous run below zero, and the run length is recorded alongside the depth, because a shallow spread that stays inverted and a deep one that recovers within weeks are two different states of the same variable. The series are synthetic and seeded, so every number reproduces exactly."
+dataSources:
+  - "Synthetic rate paths from the platform's seeded simulator (illustrative sample data)."
+  - "Standard term-spread construction, as described in the public macroeconomics literature."
+  - "No third-party market feed is used, and no provider is named or implied."
+aiGenerated: true
+---
+
+An inversion is a shape on a chart, and shapes are cheap. The part that carries
+information is not that a long rate fell below a short one, but how long the two
+stay that way, how deep the gap gets, and what else is moving while they do. Read
+on its own, the sign of the spread is one bit. Read as a run, it is a description
+of a state - and states persist in a way that single readings do not.
+
+## The spread is one subtraction
+
+The term spread is the difference between a long rate and a short rate:
+
+$$
+\text{spread}_t = y^{(10)}_t - y^{(2)}_t
+$$
+
+That is the whole construction. Everything interesting lives in how the resulting
+series is summarised. A level tells you where the curve sits today; a sign tells
+you which way it slopes; a duration tells you how long it has sloped that way, and
+the duration is the one most often left out of the summary.
+
+## A state, not an event
+
+An inversion is described as *happening*, which makes it sound like a moment. In
+the illustrative sample the spread crosses zero and then stays on the same side of
+it for a stretch measured in months, drifting deeper and shallower within that run
+without ever resurfacing. The distinction matters because a run has a beginning, a
+depth and an end, and the run itself is the object the historical record is about.
+
+Depth behaves differently from duration. In the same sample, the deepest reading of
+a run is not a good guide to how long the run lasts: the two move together loosely
+at best. If a summary reports only the deepest point, it is reporting the noisiest
+number in the episode and discarding the most stable one.
+
+## Why the lag is the hard part
+
+The notable feature of an inverted curve is that it is historically associated with
+a slowdown that arrives later - often considerably later. That is an association
+between a state and a subsequent state, measured across a handful of episodes of a
+slow variable. It is not a clock. A spread that turns negative while nothing else
+moves is not a confirmed early warning; it is one variable moving, and the record
+says only that this particular variable has historically moved ahead of a different
+one.
+
+Two mistakes follow from confusing the lag with a schedule. The first is treating
+an inversion as an event to be dated precisely, when the run has no single moment
+that can carry that weight. The second is reading the depth of the current run as
+the size of what follows, which the illustrative sample does not support and which
+the construction of the variable never implied.
+
+## What a careful reading looks like
+
+Three steps, none of them predictive. First, describe the run rather than the
+crossing: its length, its depth and its direction of travel. Second, compare it
+with the other slow variables you already track, because an inversion alongside
+broad stability is a different description from an inversion alongside several
+other variables moving. Third, hold the sample size in view - a pattern supported
+by a few dozen observations of a monthly variable is a description, and
+descriptions are what the record actually provides.
+
+## What this is not
+
+Nothing here is a forecast, a probability, or a rule for acting. The illustrative
+figures come from a single synthetic path and are not evidence that any
+relationship holds in general. The useful claim is narrow: an inversion is a state
+with a length, the historical association is a lag rather than a trigger, and a
+summary that reports only the crossing is reporting the smallest part of the
+observation.
+

@@ -1,18 +1,19 @@
 import type { Metadata } from "next";
 
-import { PlaceholderPage } from "@/components/layout/PlaceholderPage";
+import { AuthPanel } from "@/components/auth/AuthPanel";
 
-import { MockSignIn } from "./MockSignIn";
+export const metadata: Metadata = {
+  title: "Login",
+  description: "Sign in to Quantmetrics-Lab.",
+  robots: { index: false, follow: false },
+};
 
-export const metadata: Metadata = { title: "Login" };
-
+/**
+ * Sign-in (brief F6): the same split-screen panel with the cross-links reversed.
+ * The funnel stepper stays visible but marks no step, because signing in is not
+ * one of the sign-up steps.
+ */
 export default function LoginPage() {
-  return (
-    <PlaceholderPage
-      title="Login"
-      note="The split-screen sign-in flow lands in a later stage. The mock below exercises the header's authenticated state."
-    >
-      <MockSignIn />
-    </PlaceholderPage>
-  );
+  return <AuthPanel mode="login" />;
 }
+

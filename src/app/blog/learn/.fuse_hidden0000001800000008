@@ -1,0 +1,55 @@
+import type { Metadata } from "next";
+
+import { BlogBrowser } from "@/components/blog/BlogBrowser";
+import { EyebrowChip } from "@/components/layout/EyebrowChip";
+import { Section } from "@/components/layout/Section";
+import { LEARN_SERIES, LEARN_SERIES_SLUG, getPostsInSeries, toSummary } from "@/lib/blog";
+
+export const metadata: Metadata = {
+  title: "Learn",
+  description:
+    "A guided path through the foundations of quantitative finance: stationarity, volatility models and the checks behind every result. Research and education only.",
+  openGraph: {
+    type: "website",
+    url: "SITE_URL + "/blog/learn",
+    title: "Learn - Quantmetrics-Lab",
+    description:
+      "The foundational reads from the blog, in the order they build on one another.",
+  },
+};
+
+/**
+ * The Learn hub (brief F7): the same browser as the blog index, narrowed to the
+ * cross-cutting "Learn" series so the footer's Learn link lands on real content.
+ *
+ * The server does the narrowing here rather than the client, so the page is a
+ * focused set rather than the whole archive with a filter pre-applied. The chip
+ * list is derived from the posts that survived, which keeps every chip on the
+ * page backed by at least one card.
+ */
+export default function LearnPage() {
+  const posts = getPostsInSeries(LEARN_SERIES_SLUG).map(toSummary);
+  const categories = ["ALL", ...Array.from(new Set(posts.map((post) => post.category)))];
+
+  return (
+    <main>
+      <Section grid={false} divider={false} spacing="none" innerClassName="pt-10 pb-4">
+        <div className="flex flex-col items-center text-center">
+          <EyebrowChip>Learn</EyebrowChip>
+          <h1 className="text-h2 mt-3 max-w-[24ch]">Learn the methods, in order</h1>
+          <p className="text-meta mt-3 max-w-[62ch]">
+            A short, ordered path through the ideas that hold up every result on this site. Each
+            piece starts from plain language and ends with the mathematics, so a newcomer can read
+            the first half and a practitioner can use the second. Work through them in sequence for
+            the foundations, or open a single one when a term needs clarifying - everything here is
+            research and education, never investment advice.
+          </p>
+        </div>
+      </Section>
+
+      <Section grid={3} spacing="none" innerClassName="pt-4 pb-12">
+        <BlogBrowser posts={posts} series={[LEARN_SERIES]} categories={categories} />
+      </Section>
+    </main>
+  );
+}

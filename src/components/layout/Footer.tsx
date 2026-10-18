@@ -1,14 +1,15 @@
 import Link from "next/link";
+import type { CSSProperties } from "react";
 
 import { Logo } from "@/components/brand/Logo";
 import { GitHubIcon, XIcon } from "@/components/brand/SocialIcons";
 import { Container } from "@/components/layout/Container";
 import {
   FOOTER_COPYRIGHT,
-  FOOTER_DISCLAIMER,
   FOOTER_GROUPS,
   FOOTER_SOCIALS,
 } from "@/lib/navigation";
+import { rulePositions, scaffoldTemplate } from "@/lib/layout";
 import { cn } from "@/lib/utils";
 
 const SOCIAL_ICONS = { github: GitHubIcon, x: XIcon };
@@ -27,44 +28,66 @@ const ROW =
   "hover:bg-fill-faint";
 
 /**
- * The grid hairline. One token, `--line-grid`, is a solid 1px line at 30% alpha
- * (theme-aware, so it stays visible on the light canvas). Nothing here is faded,
- * masked or blurred: every rule is crisp from end to end, which is what makes
- * the footer read as a ruled grid rather than as a stack of floating cards.
+ * The grid hairline. `--line-strong` is a solid, theme-aware 1px line: brighter
+ * than the soft `--line-grid` used inside bands, because the footer has to read
+ * as a crisp, table-like ruled frame. Nothing here is faded, masked or blurred -
+ * every rule is solid and runs its full length.
  */
-const GRID = "border-line-grid";
+const GRID = "border-line-strong";
+// The footer content is intentionally a little narrower than the home matrices,
+// while the paired side rails sit closer together, matching the closing PDF
+// pattern without changing the scaffold used by the rest of the home page.
+const FOOTER_OUTER_SPACE = 0.6;
+const FOOTER_SIDE_RAIL = 0.12;
+const FOOTER_SCAFFOLD = scaffoldTemplate(FOOTER_GROUPS.length + 1, FOOTER_OUTER_SPACE, FOOTER_SIDE_RAIL);
+const FOOTER_RULES = rulePositions(FOOTER_GROUPS.length + 1, FOOTER_OUTER_SPACE, FOOTER_SIDE_RAIL);
 
 /**
  * Global footer.
  *
  * The ruled grid the reference draws, edge to edge:
- *   - the wrapper is closed on all four sides, so the grid has an outer frame
- *     on its left, right, top and bottom edges;
+ *   - the columns row has its own top, left, right and bottom rules; the legal
+ *     row below is open at the sides, with only its closing horizontal rule;
  *   - inside, five equal parts - the logo cell plus the four labelled columns -
- *     each carry a right-hand rule, which is what draws the vertical dividers
- *     between the columns;
+ *     align with the scaffold's vertical rule layer, which draws the paired
+ *     side edges and the dividers between the columns;
  *   - every column draws a rule under its own heading, and because the parts
  *     sit side by side those four segments form one continuous line across the
  *     grid (the line that separates the headings from the links);
  *   - the links row closes with a rule, and the legal row sits below it.
  *
- * The interior verticals are drawn from `lg` up; below that the parts stack and
- * only the outer frame is kept (brief section I). At `md` the grid is two
- * columns of links under a full-width logo cell, so the divider is drawn after
- * the first and third link columns.
+ * The scaffold verticals are drawn from `lg` up; below that the parts stack and
+ * the horizontal boundaries remain. At `md` the grid is two columns of links
+ * under a full-width logo cell, so the divider is drawn after the first and
+ * third link columns.
  */
 export function Footer() {
-  const lastGroup = FOOTER_GROUPS.length - 1;
-
   return (
     <footer className="bg-bg">
-      <Container>
-        <div className={cn("border", GRID)}>
-          {/* Links row: logo cell + the four labelled columns. */}
-          <div className={cn("grid grid-cols-1 border-b md:grid-cols-2 lg:grid-cols-5", GRID)}>
+      {/* Full-bleed matrix: open / paired side rail / five site columns /
+          paired side rail / open. The horizontal boundaries intentionally reach
+          the viewport edges, as in sample-banner-footer.pdf. */}
+      <div
+        className={cn("relative grid grid-cols-1 border-t border-b lg:[grid-template-columns:var(--footer-scaffold)]", GRID)}
+        style={{ "--footer-scaffold": FOOTER_SCAFFOLD } as CSSProperties}
+      >
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 hidden select-none lg:block">
+          {FOOTER_RULES.map((left) => (
+            <span
+              key={left}
+              className="absolute inset-y-0 w-px bg-line-strong"
+              style={{ left: `${left}%` }}
+            />
+          ))}
+        </div>
+
+        <div aria-hidden="true" className="hidden lg:col-span-2 lg:block" />
+
+        <div className="col-span-1 lg:col-span-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5">
             <div
               className={cn(
-                "flex flex-col items-start justify-between gap-6 px-3 py-3 md:col-span-2 lg:col-span-1 lg:border-r",
+                "flex flex-col items-start justify-between gap-6 px-3 py-3 md:col-span-2 lg:col-span-1",
                 GRID,
               )}
             >
@@ -104,11 +127,9 @@ export function Footer() {
                   className={cn(
                     "flex flex-col",
                     GRID,
-                    // Every part but the last draws the divider to its right.
-                    index < lastGroup && "lg:border-r",
                     // At md the grid is two link columns wide, so the divider
                     // goes after the first and the third part only.
-                    index % 2 === 0 && "md:border-r",
+                    index % 2 === 0 && "md:border-r lg:border-r-0",
                   )}
                 >
                   <h2 id={headingId} className="px-3 pt-3 pb-2 text-mono-label text-text-muted">
@@ -148,14 +169,17 @@ export function Footer() {
               );
             })}
           </div>
-
-          {/* Legal bar. The rule above it is the links row's own border-bottom. */}
-          <div className="px-3 py-3 text-center">
-            <p className="text-meta">{FOOTER_DISCLAIMER}</p>
-            <p className="mt-1 text-body text-text-muted">{FOOTER_COPYRIGHT}</p>
-          </div>
         </div>
-      </Container>
+
+        <div aria-hidden="true" className="hidden lg:col-span-2 lg:block" />
+      </div>
+
+      {/* Copyright row: full-bleed closing rule, but no vertical rails. */}
+      <div className={cn("border-b px-gutter py-3 text-center", GRID)}>
+        <Container>
+          <p className="text-body text-text-muted">{FOOTER_COPYRIGHT}</p>
+        </Container>
+      </div>
     </footer>
   );
 }

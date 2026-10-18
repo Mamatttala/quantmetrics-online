@@ -1,0 +1,108 @@
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+
+import { ArticleBox } from "@/components/blog/ArticleBox";
+import { ArticleRail } from "@/components/blog/ArticleRail";
+import { MdxContent } from "@/components/blog/MdxContent";
+import { ArticleLayout } from "@/components/layout/ArticleLayout";
+import { AiBadge } from "@/components/ui/AiBadge";
+import { Disclaimer } from "@/components/ui/Disclaimer";
+import { getAllBriefs, getBrief } from "@/lib/briefs";
+
+
+interface BriefPageProps {
+  params: Promise<{ slug: string }>;
+}
+
+/** Every brief is prerendered; the archive is small and build-time known. */
+export function generateStaticParams() {
+  return getAllBriefs().map((brief) => ({ slug: brief.slug }));
+}
+
+export async function generateMetadata({ params }: BriefPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const brief = getBrief(slug);
+
+  if (!brief) return { title: "Insight" };
+
+  return {
+    title: brief.title,
+    description: brief.summary,
+    openGraph: {
+      type: "article",
+      url: SITE_URL + "/insights/" + brief.slug,
+      title: brief.title,
+      description: brief.summary,
+      publishedTime: brief.date,
+      tags: brief.tags,
+    },
+  };
+}
+
+/**
+ * The brief detail page (brief F3): the reusable ArticleLayout, the compiled MDX
+ * body, and two boxes the blog does not have - "Key takeaways" above the body
+ * and "Methodology & data" below it. The sidebar is the same ArticleRail the
+ * blog uses; only the CTA is passed explicitly so it points at /services.
+ *
+ * The AI-generated badge states up front that the copy is machine-drafted, and
+ * the disclaimer repeats the footer line under the article.
+ */
+export default async function BriefPage({ params }: BriefPageProps) {
+  const { slug } = await params;
+  const brief = getBrief(slug);
+
+  if (!brief) notFound();
+
+  return (
+    <ArticleLayout
+      backHref="/insights"
+      backLabel="All briefs"
+      badge={<AiBadge />}
+      title={brief.title}
+      standfirst={brief.summary}
+      category={brief.category}
+      date={brief.dateLabel}
+      tags={brief.tags}
+      cover={brief.cover}
+      coverTitle={brief.category}
+      sidebar={
+        <ArticleRail
+          shareUrl={SITE_URL + "/insights/" + brief.slug}
+          shareTitle={brief.title}
+          contents={brief.contents}
+          cta={{
+            title: "Explore the lab",
+            body: "Backtesting, econometrics and risk analytics, with sample dashboards.",
+            action: "Explore the lab",
+            actionHref: "/services",
+            secondary: "Read the docs",
+            secondaryHref: "/docs",
+          }}
+        />
+      }
+      footer={<Disclaimer className="border-t border-line pt-4" />}
+    >
+      <ArticleBox title="Key takeaways">
+        <ul className="text-body-lg marker:text-text-dim flex list-disc flex-col gap-2 pl-5">
+          {brief.takeaways.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      </ArticleBox>
+
+      <MdxContent body={brief.body} />
+
+      <ArticleBox title="Methodology & data" className="mt-8">
+        <p className="text-body-lg">{brief.methodology}</p>
+        {brief.dataSources.length > 0 ? (
+          <ul className="text-meta marker:text-text-dim mt-4 flex list-disc flex-col gap-2 pl-5">
+            {brief.dataSources.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        ) : null}
+      </ArticleBox>
+    </ArticleLayout>
+  );
+}

@@ -1,0 +1,90 @@
+---
+title: Volatility models overview
+section: Method
+order: 20
+summary: How the GARCH family models volatility, conceptually - the recursion, persistence, the long-run variance, and the asymmetric extensions.
+---
+
+Returns are close to unforecastable in direction. Their magnitude is not. A large move today makes
+a large move tomorrow more likely, and that clustering is what a volatility model is built to
+capture. This page is a conceptual tour of the GARCH family, the models we reach for first.
+
+The numbers in the worked example are illustrative sample data, chosen to make the arithmetic
+checkable by hand.
+
+## Volatility is not observable
+
+We never see volatility. We see a return, and we infer the volatility that could have produced it.
+That inference is the whole game.
+
+Write the return at time $t$ as
+
+$$
+r_t = \mu + \varepsilon_t, \qquad \varepsilon_t = \sigma_t z_t, \qquad z_t \sim \mathcal{N}(0, 1),
+$$
+
+where $\mu$ is a constant mean and $\sigma_t$ is the time-varying conditional volatility. The
+shocks $z_t$ are assumed independent with unit variance; all of the structure lives in $\sigma_t$.
+
+## The GARCH(1,1) recursion
+
+The workhorse model writes tomorrow's variance as a weighted average of three things: a constant,
+yesterday's squared shock, and yesterday's variance.
+
+$$
+\sigma_t^2 = \omega + \alpha \varepsilon_{t-1}^2 + \beta \sigma_{t-1}^2
+$$
+
+Each term has a reading. The constant $\omega$ is the floor the variance reverts to. The term
+$\alpha \varepsilon_{t-1}^2$ is the reaction to news: a large shock raises the variance
+immediately. The term $\beta \sigma_{t-1}^2$ is memory: the variance carries over even on a quiet
+day.
+
+The model is stationary when $\alpha + \beta < 1$, and the sum is the persistence. When
+persistence is close to one, shocks decay slowly and the series is said to have long memory in
+volatility.
+
+## The long-run variance
+
+When the model is stationary, the variance reverts to a level rather than wandering off. Setting
+$\sigma_t^2 = \sigma_{t-1}^2 = \bar{\sigma}^2$ and solving gives
+
+$$
+\bar{\sigma}^2 = \frac{\omega}{1 - \alpha - \beta}.
+$$
+
+This is the number a forecast drifts toward as the horizon lengthens, and it is often the single
+most useful output of the fit.
+
+## A worked illustration
+
+Take illustrative estimates $\omega = 0.00002$, $\alpha = 0.08$ and $\beta = 0.90$. Then
+
+$$
+\alpha + \beta = 0.98, \qquad \bar{\sigma}^2 = \frac{0.00002}{1 - 0.98} = 0.001.
+$$
+
+Persistence of **0.98** says a shock halves in roughly 34 periods. A long-run daily variance of
+**0.001** corresponds to a daily volatility of about **3.2%**, which is high for an equity index and
+is why the illustration is labelled as sample data.
+
+## Asymmetry and other extensions
+
+GARCH(1,1) treats a positive and a negative shock of the same size identically. Equity volatility
+usually does not: a fall raises it more than a rise. Two common repairs keep the same spirit.
+
+- **GJR-GARCH** adds a term that switches on when the previous shock was negative, so bad news has
+  its own coefficient.
+- **EGARCH** models the logarithm of the variance, which lets the response be asymmetric and keeps
+  the variance positive without constraining the parameters.
+
+Further afield, regime-switching and long-memory models relax the assumption that one persistence
+describes the whole sample. Each buys flexibility at the cost of more parameters to estimate, and
+more parameters to over-fit.
+
+## Choosing between them
+
+Start with GARCH(1,1). It is a defensible baseline, its parameters are interpretable, and it fails
+in ways you can see. Move to an asymmetric extension when the diagnostics show a leverage effect,
+and only then. The [Backtesting and validation](/docs/backtesting-and-validation) page covers how to
+tell whether the extra term is earning its keep.

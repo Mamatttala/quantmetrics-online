@@ -1,0 +1,84 @@
+---
+title: Data sources and cleaning
+section: Method
+order: 10
+summary: The generic principles behind the data we use - provenance, alignment, missing values, outliers, and the trail from raw file to modelled series.
+---
+
+A model can only be as good as the series it is fitted to, and a series is never simply "the data".
+It is a set of choices about where the numbers came from, how they were aligned, and what was done
+about the gaps and the obvious errors. This page describes the principles we apply. It is
+deliberately generic: the specifics change with every study.
+
+The counts and dates used below are illustrative sample figures. They are here to make a step
+concrete, not to describe any real series we hold.
+
+## Provenance comes first
+
+Before a series is used, we record where it came from: the venue or provider, the field, the
+timestamp convention, and the moment it was retrieved. A file without that record is not data, it
+is a number that happens to be in a spreadsheet.
+
+Provenance is what makes a result reproducible. If a series is revised upstream after we publish,
+the retrieval date is how we tell the original sample from the revised one.
+
+## Alignment and time
+
+Two series can only be compared once they share a clock. The three decisions that cause the most
+trouble are the timestamp convention, the calendar and the frequency.
+
+- **Timestamp convention.** A daily bar can be stamped at its open, its close or its settlement.
+  Mixing conventions across two series manufactures a lead or a lag that is an artefact.
+- **Calendar.** Trading calendars, holidays and weekend handling differ between venues. Aligning
+  by date alone silently drops or duplicates observations around a boundary.
+- **Frequency.** Moving to a lower frequency is a choice of aggregation. A closing price, an
+  average and a last-observation-carried-forward are three different series, not three views of
+  one.
+
+We align on a single explicit calendar, keep the timestamp convention in the schema, and record
+any aggregation rule next to the series it produced.
+
+## Missing values
+
+Missing data is not a single problem, and the right response depends on why the value is missing.
+
+- A **missing observation** - a day the market did not trade - is usually left out, with the
+  calendar carrying the reason.
+- A **missing value** inside a continuously observed series is a gap. We prefer a documented,
+  reversible fill to an invisible one, and we always record how many points were filled.
+- A **stale value** - a price repeated because the instrument did not trade - looks like data and
+  behaves like a gap. It has to be detected, not filled.
+
+Rule of thumb: if filling a gap changes the sign of a conclusion, the conclusion was never strong.
+
+## Outliers and suspicious prints
+
+An extreme value is either information or an error, and the two look identical in a series. We
+treat an outlier as an error only when there is corroborating evidence - a crossing of the bid and
+the ask, a price that is inconsistent with the surrounding book, a timestamp outside the session.
+
+Deleting an outlier because it is inconvenient is one of the quiet ways a backtest is made to look
+better than it is. The honest option is to winsorise, to model the tails explicitly, or to keep it
+and report the sensitivity.
+
+## The cleaning trail
+
+Every transformation is recorded so the raw file can be recovered and the cleaned series rebuilt.
+A pipeline that cannot be re-run on the raw input is a pipeline that cannot be audited.
+
+In practice that means the raw snapshot is immutable, each cleaning step is a separate function
+with its own test, and the modelled series is a named artefact of the steps rather than a file
+someone edited by hand.
+
+## A worked illustration
+
+Imagine a daily series with **1,240** observations, of which **3** are missing mid-week and **2**
+sit outside the plausible range for the instrument. An illustrative cleaning recipe is:
+
+1. Drop the **3** interior gaps and record their dates.
+2. Flag the **2** suspicious points, winsorise them to the 0.5th and 99.5th percentiles, and keep
+   a note of the original values.
+3. Recompute the summary statistics before and after, and report both.
+
+If step 3 shows the mean moving by more than a rounding error, the cleaning is part of the result
+and belongs in the write-up, not in a footnote.

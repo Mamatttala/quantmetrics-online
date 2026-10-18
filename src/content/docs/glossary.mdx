@@ -1,0 +1,56 @@
+---
+title: Glossary
+section: Reference
+order: 50
+summary: Plain-language definitions of the terms used across these docs and the rest of the site.
+---
+
+Short definitions of the vocabulary used across the documentation. Each entry links to the page
+that treats it in full where one exists.
+
+## A to C
+
+**Alpha.** The part of a return not explained by exposure to a benchmark. In a research setting it
+is an estimated intercept, with all the estimation error that implies.
+
+**Autocorrelation.** The correlation of a series with a lagged copy of itself. Positive
+autocorrelation makes a sample look smoother than it is and understates risk.
+
+**Conditional volatility.** Volatility given the information available up to now - the quantity a
+GARCH model estimates. Contrasted with unconditional volatility, the long-run average.
+
+## D to H
+
+**Drawdown.** The fall from a running peak, as a percentage. See [Risk metrics
+glossary](/docs/risk-metrics-glossary).
+
+**Heteroskedasticity.** A variance that is not constant over time. Volatility clustering is a
+specific, persistent form of it.
+
+**Hold-out sample.** Data set aside and not used during estimation, so that a result can be scored
+on data it has never seen.
+
+## L to R
+
+**Long memory.** Dependence that decays slowly, so a shock is still felt after many periods.
+
+**Overfitting.** Fitting the noise in a sample rather than the structure. It shows up as excellent
+in-sample performance and poor out-of-sample performance. See [Backtesting and
+validation](/docs/backtesting-and-validation).
+
+**Persistence.** In a GARCH model, the sum of the reaction and memory coefficients. Close to one
+means shocks decay slowly.
+
+## S to Z
+
+**Stationarity.** A property of a series whose mean, variance and autocovariance do not depend on
+the calendar. Most classical results assume it.
+
+**Value at risk.** A loss threshold exceeded with a stated probability over a stated horizon. See
+[Risk metrics glossary](/docs/risk-metrics-glossary).
+
+**Volatility clustering.** The tendency of large changes to be followed by large changes. The
+stylised fact that motivates the whole GARCH family.
+
+**Walk-forward validation.** Re-fitting a model on a moving window and scoring it out of sample at
+each step.

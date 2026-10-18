@@ -15,8 +15,8 @@ import {
   TraderSignalArt,
 } from "@/components/brand/AudienceIllustrations";
 import { EyebrowChip } from "@/components/layout/EyebrowChip";
-import { Reveal } from "@/components/layout/Reveal";
-import { Section } from "@/components/layout/Section";
+import { GridRail, SectionGrid } from "@/components/layout/SectionGrid";
+import { SectionHeading } from "@/components/layout/SectionHeading";
 import { TabBar } from "@/components/ui/TabBar";
 import type { TabItem } from "@/components/ui/TabBar";
 
@@ -113,28 +113,36 @@ const TABS: TabItem[] = AUDIENCES.map((audience) => ({
 const FADE = "transition-colors duration-[var(--dur-fill)] ease-[var(--ease-standard)]";
 
 /**
- * Audience tabs (brief F1.5): three tall cards per audience in a hairline-bordered
- * grid. Hovering a card fades the teal-to-blue gradient in behind the copy and
- * lifts the illustration to full contrast over 200ms.
+ * Audience tabs (brief F1.5).
  *
- * FeatureCard was not reused: it carries a 24px radius and its own border, which
- * cannot compose into a shared-hairline grid. The fill uses the same gradient
- * tokens it does.
+ * Reworked onto the site scaffold to match the reference layout, which reads:
+ * heading on the plain canvas, a full-bleed rule, the tab row between two more
+ * rules, then the card row on the same three content columns as the rest of the
+ * page with empty rails either side. Previously this drew its own closed border
+ * box, which is the one thing the reference never does.
+ *
+ * Hovering a card fades the teal-to-blue gradient in behind the copy and lifts
+ * the illustration to full contrast over 200ms. FeatureCard was not reused: it
+ * carries a 24px radius and its own border, which cannot compose into a shared
+ * hairline grid. The fill uses the same gradient tokens it does.
  */
 export function AudienceTabs() {
   const [active, setActive] = useState(AUDIENCES[0].id);
 
   return (
-    <Section grid={false} id="audience">
-      <Reveal className="flex flex-col items-center text-center">
-        <EyebrowChip>Audience</EyebrowChip>
-        <h2 className="text-h2 mt-3 max-w-[22ch]">Built for every kind of market mind</h2>
-      </Reveal>
+    <section id="audience" className="relative">
+      <SectionHeading
+        eyebrow={<EyebrowChip>Audience</EyebrowChip>}
+        title="Built for every kind of market mind"
+        titleWidth={22}
+      />
 
-      {/* The bar keeps its own width and the wrapper scrolls, so the tabs stay on
-          one line on a narrow screen instead of wrapping. */}
-      <Reveal className="mt-6">
-        <div className="flex overflow-x-auto">
+      {/* Tab row: rules above and below, the bar centred on the content measure.
+          The wrapper scrolls so the labels stay on one line on a narrow screen
+          instead of wrapping. */}
+      <SectionGrid rules={false} bottomRule>
+        <GridRail />
+        <div className="col-span-1 flex overflow-x-auto px-3 py-3 lg:col-span-3">
           <TabBar
             tabs={TABS}
             label="Audience"
@@ -143,44 +151,57 @@ export function AudienceTabs() {
             className="mx-auto min-w-max"
           />
         </div>
-      </Reveal>
+        <GridRail />
+      </SectionGrid>
 
-      <Reveal className="mt-6">
-        {AUDIENCES.map((audience) => (
-          <div
-            key={audience.id}
-            id={`${PANEL_PREFIX}${audience.id}`}
-            role="tabpanel"
-            aria-labelledby={`tab-${audience.id}`}
-            hidden={audience.id !== active}
-          >
-            <ul className="grid grid-cols-1 border-t border-l border-line md:grid-cols-3">
-              {audience.cards.map(({ title, description, Art }) => (
-                <li key={title} className="group relative overflow-hidden border-r border-b border-line">
-                  <span
-                    aria-hidden="true"
-                    className={`pointer-events-none absolute inset-0 gradient-teal-blue opacity-0 ${FADE} group-hover:opacity-100`}
-                  />
+      <SectionGrid bottomRule>
+        <GridRail />
 
-                  <div className="relative flex h-42.5 flex-col items-center justify-end p-4 text-center">
+        <div className="col-span-1 lg:col-span-3">
+          {AUDIENCES.map((audience) => (
+            <div
+              key={audience.id}
+              id={`${PANEL_PREFIX}${audience.id}`}
+              role="tabpanel"
+              aria-labelledby={`tab-${audience.id}`}
+              hidden={audience.id !== active}
+            >
+              {/* Three cards on the scaffold's three content columns. No outer
+                  frame and no vertical cell borders: the page rules already sit
+                  exactly on those seams from lg up. */}
+              <ul className="grid grid-cols-1 md:grid-cols-3">
+                {audience.cards.map(({ title, description, Art }) => (
+                  <li
+                    key={title}
+                    className="group relative overflow-hidden border-b border-line-grid md:border-r md:last:border-r-0 lg:border-r-0 lg:border-b-0"
+                  >
                     <span
-                      className={`flex flex-1 items-center justify-center text-text-muted ${FADE} group-hover:text-on-gradient`}
-                    >
-                      <Art />
-                    </span>
-                    <h3 className={`text-card-title text-text ${FADE} group-hover:text-on-gradient`}>
-                      {title}
-                    </h3>
-                    <p className={`text-meta mt-2 max-w-[34ch] ${FADE} group-hover:text-on-gradient-muted`}>
-                      {description}
-                    </p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </Reveal>
-    </Section>
+                      aria-hidden="true"
+                      className={`pointer-events-none absolute inset-0 gradient-teal-blue opacity-0 ${FADE} group-hover:opacity-100`}
+                    />
+
+                    <div className="relative flex h-42.5 flex-col items-center justify-end p-4 text-center">
+                      <span
+                        className={`flex flex-1 items-center justify-center text-text-muted ${FADE} group-hover:text-on-gradient`}
+                      >
+                        <Art />
+                      </span>
+                      <h3 className={`text-card-title text-text ${FADE} group-hover:text-on-gradient`}>
+                        {title}
+                      </h3>
+                      <p className={`text-meta mt-2 max-w-[34ch] ${FADE} group-hover:text-on-gradient-muted`}>
+                        {description}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        <GridRail />
+      </SectionGrid>
+    </section>
   );
 }

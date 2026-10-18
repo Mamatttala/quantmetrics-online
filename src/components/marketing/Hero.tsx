@@ -1,4 +1,5 @@
 import { Container } from "@/components/layout/Container";
+import { GridRail, SectionGrid } from "@/components/layout/SectionGrid";
 import { Reveal } from "@/components/layout/Reveal";
 import { HeroBackdrop } from "@/components/marketing/HeroBackdrop";
 import { Button } from "@/components/ui/Button";
@@ -35,7 +36,7 @@ export function Hero() {
       <HeroBackdrop />
 
       <Container className="relative">
-        <div className="flex flex-col items-center pt-20 pb-12 text-center">
+        <div className="flex min-h-[560px] flex-col items-center justify-center text-center lg:min-h-[720px]">
           <Reveal className="flex flex-col items-center">
             <h1 className="text-hero">
               <span className="block text-on-gradient">Sync With The Market&rsquo;s</span>
@@ -56,26 +57,32 @@ export function Hero() {
         </div>
       </Container>
 
-      {/* Stats strip: one full-bleed band closed by crisp, unfaded hairlines. */}
-      <div className="relative border-y border-line-strong bg-lavender">
-        <Container>
-          <div className="flex snap-x snap-mandatory overflow-x-auto sm:grid sm:grid-cols-3 sm:overflow-visible">
-            {HERO_STATS.map((stat, index) => (
-              <StatCell
-                key={stat.caption}
-                layout="inline"
-                shape="square"
-                align="center"
-                value={stat.value}
-                caption={stat.caption}
-                className={cn(
-                  "min-h-9 min-w-32 shrink-0 snap-start border-x border-line-strong sm:min-w-0",
-                  index > 0 && "-ml-px",
-                )}
-              />
-            ))}
+      {/* Stats strip: preserve the original three equal content cells and add
+          the paired rails at the exact Capabilities scaffold positions. */}
+      <div className="relative border-y border-line-grid bg-lavender">
+        <SectionGrid columns={3}>
+          <GridRail />
+          <div className="col-span-1 lg:col-span-3">
+            <div className="flex snap-x snap-mandatory overflow-x-auto sm:grid sm:grid-cols-3 sm:overflow-visible">
+              {HERO_STATS.map((stat, index) => (
+                <StatCell
+                  key={stat.caption}
+                  layout="inline"
+                  inlineCaptionSize="stat"
+                  shape="square"
+                  align="center"
+                  value={stat.value}
+                  caption={stat.caption}
+                  className={cn(
+                    "min-h-9 min-w-32 shrink-0 snap-start border-x border-line-grid sm:min-w-0 lg:border-x-0",
+                    index > 0 && "-ml-px",
+                  )}
+                />
+              ))}
+            </div>
           </div>
-        </Container>
+          <GridRail />
+        </SectionGrid>
       </div>
     </section>
   );

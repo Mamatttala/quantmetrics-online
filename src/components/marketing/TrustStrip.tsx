@@ -1,20 +1,30 @@
 import type { CSSProperties } from "react";
 
-import { Container } from "@/components/layout/Container";
+import { GridRail, SectionGrid } from "@/components/layout/SectionGrid";
 import { TRUST_MARKS } from "@/lib/navigation";
 
 /**
- * The client-supplied marks are white-only PNGs, so they are painted through
- * `mask-image` in `currentColor` (see the `mark-mask` utility in
- * src/app/globals.css). That gives every mark one tonal treatment and lets the
- * whole strip follow the theme, instead of the artwork vanishing against the
- * light canvas. The strip fades them to 60% and lifts them to full strength on
- * hover.
+ * The marks are client-supplied, single-tone PNGs exported on one shared
+ * 500x418 canvas. They are painted through `mask-image` in `currentColor` (see
+ * the `mark-mask` utility in src/app/globals.css), so no component hard-codes a
+ * colour and the whole strip follows the active theme.
+ *
+ * Two CSS-only corrections keep the row even, because the artwork itself is
+ * fixed:
+ *   - `mark-scale` applies the per-mark factor stored on each TRUST_MARKS entry,
+ *     which normalises the optical size (each PNG fills a different share of its
+ *     canvas, so a plain `contain` renders them at visibly different heights).
+ *   - `mark-solid` dilates the thin line art by about half a pixel, so the
+ *     hollow marks (Trust Wallet, MetaMask) read as solid instead of as
+ *     wireframes.
+ *
+ * The strip holds them at 80% and lifts them to full strength on hover.
  */
-const CELL = "group flex h-12 items-center justify-center border-l border-line-strong px-3";
+const CELL = "group flex h-12 items-center justify-center border-l border-line-grid px-3";
 
 const MARK =
-  "mark-mask h-5 w-full bg-current text-text opacity-60 transition-opacity duration-[var(--dur-hover)] ease-[var(--ease-standard)] group-hover:opacity-100";
+  "mark-mask mark-scale mark-solid h-8 w-full bg-current text-text opacity-80 " +
+  "transition-opacity duration-[var(--dur-hover)] ease-[var(--ease-standard)] group-hover:opacity-100";
 
 /**
  * The trust strip below the hero stats (brief F1.3, revised).
@@ -35,21 +45,28 @@ const MARK =
  */
 export function TrustStrip() {
   return (
-    <section aria-label="Organisations we work with" className="border-y border-line-strong bg-bg">
-      <Container>
-        <ul className="grid grid-cols-2 border-r border-line-strong sm:grid-cols-3 lg:grid-cols-6">
+    <section aria-label="Organisations we work with" className="border-y border-line-grid bg-bg">
+      <SectionGrid>
+        <GridRail />
+        <ul className="col-span-1 grid grid-cols-2 border-r border-line-grid sm:grid-cols-3 lg:col-span-3 lg:grid-cols-6 lg:border-r-0">
           {TRUST_MARKS.map((mark) => (
             <li key={mark.name} className={CELL}>
               <span
                 role="img"
                 aria-label={mark.name}
                 className={MARK}
-                style={{ "--mark-src": `url("${mark.logo}")` } as CSSProperties}
+                style={
+                  {
+                    "--mark-src": `url("${mark.logo}")`,
+                    "--mark-scale": mark.scale,
+                  } as CSSProperties
+                }
               />
             </li>
           ))}
         </ul>
-      </Container>
+        <GridRail />
+      </SectionGrid>
     </section>
   );
 }

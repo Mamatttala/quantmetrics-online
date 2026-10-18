@@ -1,9 +1,41 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 
-import { PlaceholderPage } from "@/components/layout/PlaceholderPage";
+import { MdxContent } from "@/components/blog/MdxContent";
+import { LegalLayout } from "@/components/legal/LegalLayout";
+import { getLegalDoc } from "@/lib/legal";
+import { SITE_URL } from "@/lib/site";
 
-export const metadata: Metadata = { title: "Copyright" };
+/** The MDX file this route renders (src/content/legal/copyright.mdx). */
+const SLUG = "copyright";
 
-export default function CopyrightPage() {
-  return <PlaceholderPage title="Copyright" note="DRAFT - for lawyer review before launch." />;
+export const metadata: Metadata = {
+  title: "Copyright",
+  description:
+    "Draft copyright notice for Quantmetrics-Lab: permitted use, third-party marks and how to report a concern.",
+  // Draft copy must not be indexed before it has been reviewed.
+  robots: { index: false, follow: false },
+  openGraph: {
+    type: "article",
+    url: SITE_URL + "/copyright",
+    title: "Copyright - Quantmetrics-Lab",
+    description: "Draft copyright notice for Quantmetrics-Lab: permitted use, third-party marks and how to report a concern.",
+  },
+};
+
+export default async function Page() {
+  const doc = getLegalDoc(SLUG);
+
+  if (!doc) notFound();
+
+  return (
+    <LegalLayout
+      title={doc.title}
+      updated={doc.updated}
+      updatedLabel={doc.updatedLabel}
+      contents={doc.contents}
+    >
+      <MdxContent body={doc.body} />
+    </LegalLayout>
+  );
 }

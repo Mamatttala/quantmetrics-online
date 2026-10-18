@@ -1,0 +1,66 @@
+---
+title: "Reading a volatility regime shift while it is happening"
+date: "2026-10-09"
+category: VOLATILITY
+tags:
+  - Regime
+  - GARCH
+  - Realised variance
+summary: "Volatility regimes are obvious in hindsight and ambiguous in real time. A short note on the two measures that disagree most often, and why the gap between them carries most of the information."
+takeaways:
+  - "A regime shift is a change in the persistence of variance, not only in its level."
+  - "Rolling realised variance reacts at once and decays slowly; a GARCH fit separates the news term from the memory term."
+  - "The gap between the two measures is where the timing of a shift is visible - the level alone rarely settles the question."
+  - "All figures below are illustrative sample values produced by the lab's simulator, not observed market data."
+methodology: "Two estimators are compared on the same illustrative return series. The first is realised variance over a short rolling window; the second is a GARCH(1,1) fit re-estimated on expanding windows. The comparison looks at the level of each measure and at the persistence implied by the fitted parameters. The series is synthetic and seeded, so every number reproduces exactly."
+dataSources:
+  - "Synthetic return paths from the platform's seeded simulator (illustrative sample data)."
+  - "Standard GARCH-family estimation, as described in the public econometrics literature."
+  - "No third-party market feed is used, and no provider is named or implied."
+aiGenerated: true
+---
+
+The problem with a volatility regime is never detection. It is detection *in time*.
+On a chart covering two years, the shift is unmistakable: a flat stretch, then a
+band that widens and stays wide. Standing inside that second week, the same
+information is a handful of large moves, and the honest answer is that a handful
+of large moves is also what a quiet regime occasionally produces.
+
+## Two measures, two different questions
+
+The most common reading of volatility is realised variance over a rolling window:
+
+$$
+\hat{\sigma}^2_t = \frac{1}{k} \sum_{i=0}^{k-1} r_{t-i}^2
+$$
+
+It answers a plain question: how large have recent returns been? The window length
+decides the character of the answer. A short window reacts within days and is
+noisy; a long window is smooth and slow, and it will keep reporting the old
+regime for weeks after the shift has happened.
+
+A GARCH(1,1) fit answers a different question. Writing `\sigma_t^2 = \omega + \alpha \varepsilon_{t-1}^2 + \beta \sigma_{t-1}^2`,
+the fitted `\alpha` carries the news and `\beta` carries the memory. The
+persistence `\alpha + \beta` is the number that matters for a regime question,
+because a shift in the *level* of volatility with unchanged persistence is a
+different object from a shift in how long a shock lasts.
+
+## The gap is the signal
+
+In the illustrative sample, the short-window estimate moves first and the fitted
+persistence follows a few weeks later. That ordering is the point: the level is
+what a chart shows, and the persistence is what determines whether the new level
+is a spell or a state.
+
+Reading the two together turns an ambiguous question into a specific one. A
+widening band with stable persistence is usually the same regime breathing
+harder. A widening band with persistence moving toward one is a different
+process, and the difference is measurable before it is obvious.
+
+## What this is not
+
+This is a description of a measurement gap, not a timing rule. Nothing here says
+what to do about a regime, and the illustrative figures are a single synthetic
+path - they are not evidence that the ordering holds in general. The useful claim
+is narrow: if you only watch the level, you are discarding the parameter that
+says how long the level will last.

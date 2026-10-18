@@ -173,7 +173,8 @@
 }
 
 /* Third-party logo artwork in the trust strip is stored as white-only PNGs and
-   painted through a mask, so every mark takes its colour from currentColor${n}   and therefore follows the active theme instead of disappearing on the light
+   painted through a mask, so every mark takes its colour from currentColor
+   and therefore follows the active theme instead of disappearing on the light
    canvas. The source is supplied per mark with the --mark-src property. */
 @utility mark-mask {
   -webkit-mask-image: var(--mark-src);
@@ -186,12 +187,37 @@
   mask-size: contain;
 }
 
+/* Optical size correction for the trust strip. The six marks share one canvas
+   but fill it differently, so the strip scales each one by the factor stored on
+   its TRUST_MARKS entry until they all read at the same height. */
+@utility mark-scale {
+  transform: scale(var(--mark-scale, 1));
+}
+
+/* Weight correction for the trust strip. Two of the supplied marks (Trust
+   Wallet, MetaMask) are thin line art: masked to a single tone they read as a
+   faint wireframe next to the solid marks. A tight drop-shadow in the same
+   colour dilates the shape by about half a pixel, which reads as a solid mark
+   without touching the exported PNGs. */
+@utility mark-solid {
+  filter: drop-shadow(0 0 0.6px currentColor);
+}
+
 /* Stat number: 40px grotesk sans (Inter Tight), used by StatCell and the
    stats bands. The display serif stays reserved for headlines. */
 @utility text-stat {
   font-family: var(--font-sans);
   font-weight: 400;
   font-size: 2.5rem;
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+}
+
+/* Hero stat caption: half the number size, but kept on the same baseline. */
+@utility text-stat-label {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: 1.25rem;
   line-height: 1.02;
   letter-spacing: -0.02em;
 }
@@ -303,6 +329,14 @@
 @layer components {
   .section-y {
     padding-block: var(--section-y);
+  }
+
+  /* KaTeX ships the display block with its own 1em vertical margins. Inside
+     the bordered formula box those margins just add empty space above and
+     below the border, so they are zeroed here and the box's own padding
+     takes over. Scoped to .formula-block, so nothing else is affected. */
+  .formula-block .katex-display {
+    margin-block: 0;
   }
 
   /* Scroll reveal (section E): 600ms fade + 16px rise. The initial hidden state

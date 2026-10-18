@@ -1,0 +1,45 @@
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+
+import { MdxContent } from "@/components/blog/MdxContent";
+import { DocsLayout } from "@/components/docs/DocsLayout";
+import { DOCS_ENTRY_SLUG, getDoc, getDocGroups, getDocNeighbours } from "@/lib/docs";
+
+export const metadata: Metadata = {
+  title: "Docs",
+  description:
+    "Methodology and platform documentation for Quantmetrics-Lab: data and cleaning, volatility models, backtesting and validation, risk metrics and a glossary. Research and education only.",
+  openGraph: {
+    type: "website",
+    url: "https://quantmetrics.online/docs",
+    title: "Docs - Quantmetrics-Lab",
+    description:
+      "How the research is done: data, models, validation and the metrics we report.",
+  },
+};
+
+/**
+ * /docs is the documentation entry point (brief F7): it renders the first page of
+ * the reading order, so the route is a real page rather than a redirect and works
+ * the same with JavaScript disabled. The same content also lives at
+ * /docs/introduction, which is what the sidebar links to.
+ */
+export default async function DocsIndexPage() {
+  const doc = getDoc(DOCS_ENTRY_SLUG);
+
+  if (!doc) notFound();
+
+  return (
+    <DocsLayout
+      title={doc.title}
+      section={doc.section}
+      summary={doc.summary}
+      activeSlug={doc.slug}
+      groups={getDocGroups()}
+      contents={doc.contents}
+      neighbours={getDocNeighbours(doc.slug)}
+    >
+      <MdxContent body={doc.body} />
+    </DocsLayout>
+  );
+}

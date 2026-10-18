@@ -1,0 +1,68 @@
+---
+title: "A cross-asset correlation check that takes ten minutes"
+date: "2026-10-02"
+category: MARKETS
+tags:
+  - Correlation
+  - Diversification
+  - Rolling windows
+summary: "A diversification assumption is a correlation number, and that number has no obligation to hold. A short, repeatable check for whether the pairs you rely on still behave the way you assumed."
+takeaways:
+  - "Correlation is a sample estimate over a window, not a property of a pair of assets."
+  - "Comparing a short-window and a long-window estimate shows the direction of drift, which matters more than either level."
+  - "Drift usually shows up before it shows up in returns - the relationship loosens while both series are still quiet."
+  - "All figures below are illustrative sample values produced by the lab's simulator, not observed market data."
+methodology: "Rolling Pearson correlation is computed on the same illustrative return panel at two window lengths, a short window and a long one, and the difference between them is tracked rather than either series on its own. The exercise is a diagnostic: it describes whether a relationship has been stable over the sample, and it makes no claim about what it will do next. The panel is synthetic and seeded."
+dataSources:
+  - "Synthetic multi-asset return panel from the platform's seeded simulator (illustrative sample data)."
+  - "Standard rolling correlation, computed pairwise with no imputation."
+  - "No third-party market feed is used, and no provider is named or implied."
+aiGenerated: true
+---
+
+If a portfolio note says two exposures diversify each other, it is really quoting
+one number: a correlation, measured over some window, at some point in the past.
+That is a sample estimate. It has a standard error, it drifts, and under stress
+it has a documented tendency to move in an unhelpful direction.
+
+## The check
+
+Pick the pairs the argument actually depends on - usually two or three, not
+thirty. For each, compute a rolling correlation at a short window and at a long
+one, and plot the two together. Then look at the difference rather than at either
+line:
+
+$$
+\Delta_t = \rho^{\text{short}}_t - \rho^{\text{long}}_t
+$$
+
+Two patterns are worth naming. A sustained positive `\Delta_t` means the pair
+has recently been moving together more than its history suggests. A sustained
+negative `\Delta_t` means the opposite. Neither is a forecast; both are a
+statement about whether the assumption you are relying on is currently supported
+by the data in front of you.
+
+## Why the difference and not the level
+
+The level is the number everyone already quotes, and it is the noisiest one. In
+the illustrative sample, a short-window estimate on a pair with a long-run
+correlation near zero swings between roughly -0.4 and +0.4 across the sample
+without any change in the underlying relationship. Read alone, that series looks
+like a relationship forming and dissolving several times a year.
+
+The difference between the two windows is far better behaved, because the noise
+in the short window partly cancels against the noise in the long one. What
+remains is the part that is actually news: the relationship has moved away from
+its own history, or it has not.
+
+## The ten-minute version
+
+- Choose the two or three pairs that carry the diversification argument.
+- Compute both windows on the same returns, with the same handling of missing
+  days.
+- Track the difference, and note the sample dates where it was largest.
+- Re-read the original argument against those dates before trusting it.
+
+The exercise is descriptive and it is cheap. Its value is not that it predicts
+anything - it does not - but that it replaces an assumption with an observation
+you can check again next quarter.

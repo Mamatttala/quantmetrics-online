@@ -6,6 +6,7 @@ import { ServiceStatsBand } from "@/components/services/ServiceStatsBand";
 import { TagBlock } from "@/components/services/TagBlock";
 import { WorkflowTabs } from "@/components/services/WorkflowTabs";
 import { SERVICE_SECTIONS } from "@/lib/services";
+import { SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Services",
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
     "Research, analysis and metrics from Quantmetrics-Lab: backtesting, volatility and econometric modelling, data cleaning and statistical analysis, risk analytics, and a documented performance and factor metric set. For research and education only, not investment advice.",
   openGraph: {
     type: "website",
-    url: "https://quantmetrics.online/services",
+    url: SITE_URL + "/services",
     title: "Services - Quantmetrics-Lab",
     description:
       "Backtesting, econometric modelling, risk analytics and a documented metric set, in one lab. For research and education only, not investment advice.",

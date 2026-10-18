@@ -1,0 +1,74 @@
+---
+title: "A research idea: treating the stationarity test as a signal"
+date: "2026-09-25"
+category: IDEAS
+tags:
+  - Stationarity
+  - Feature design
+  - Research idea
+summary: "Unit-root tests are usually used as a gate: pass, and you may model the level. The idea here is to stop gating and start measuring - the test statistic as a slowly moving feature rather than a verdict."
+takeaways:
+  - "A pass or fail verdict throws away the magnitude of the test statistic, which is the part that varies."
+  - "The same statistic computed on rolling windows is a drift measure for how close a series sits to a unit root."
+  - "Near a unit root, the verdict flips with lag length and sample window, so the binary reading is the least stable part of the test."
+  - "This is a research idea with no results attached; the figures are illustrative sample values, not observed market data."
+methodology: "The proposal is to compute a unit-root statistic on overlapping windows and carry the statistic itself - standardised, then smoothed - as an input alongside the usual returns-based features. Nothing here is a validated result: the note sets out the motivation and the failure modes to check first. Illustrative sample values come from the platform's seeded simulator."
+dataSources:
+  - "Synthetic series with a known order of integration, from the platform's seeded simulator (illustrative sample data)."
+  - "Standard augmented Dickey-Fuller and KPSS procedures, as described in the public econometrics literature."
+  - "No third-party market feed is used, and no provider is named or implied."
+aiGenerated: true
+---
+
+Almost everyone meets the unit-root test in the same role: a gate. Run it, read
+the p-value, and if the series passes you may model the level; if it fails you
+difference and move on. The verdict is binary and the statistic behind it is
+discarded.
+
+## The idea
+
+Keep the statistic. Compute the test on overlapping windows through the sample
+and carry the resulting series as a feature - standardised, lightly smoothed - as
+one input among several. The motivation is that the *distance* from a unit root
+changes slowly and continuously, while the verdict flips:
+
+$$
+\text{ADF}_t = f\left(y_{t-w+1}, \dots, y_t\right)
+$$
+
+For a stationary process the statistic sits well below its critical value; for a
+process with a unit root it does not. Between those two, and over short windows,
+it does both, depending on the window and the lag length chosen. That instability
+is normally treated as a nuisance. Here it is the observation.
+
+## Why it might be useful
+
+Consider why the binary version is so fragile near the boundary. Adding one lag
+changes the statistic; extending the window by a quarter changes it again; a
+structural break late in the sample makes an `I(1)` series look stationary
+before the break and nothing like it afterwards. Each of those is a fact about
+the sample, not about the process, and the verdict compresses all of them into
+one bit.
+
+A slow-moving version of the statistic keeps that information. A signal that
+depends on whether a relationship is stable should arguably be allowed to see
+how stable the data says it is, rather than being switched on or off by a
+threshold crossing.
+
+## What to check before believing any of it
+
+- Does the rolling statistic actually vary more than its own sampling noise? If
+  not, there is nothing to carry.
+- Is it collinear with features already in the model - realised volatility,
+  autocorrelation, trend strength? If it is, it is a relabelling, not a new
+  input.
+- Does the lag length choice dominate the result? If it does, the feature is
+  reporting the analyst's decision rather than the data.
+- Does it survive out of sample? Most ideas of this shape do not, and the test
+  has to be able to say so.
+
+## Status
+
+This is a proposal, not a finding. No result is claimed, no instrument is named,
+and no action is suggested. It is written down because the asymmetry is
+appealing: the gate discards a number, and the number is the part that moves.

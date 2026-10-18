@@ -1,9 +1,41 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 
-import { PlaceholderPage } from "@/components/layout/PlaceholderPage";
+import { MdxContent } from "@/components/blog/MdxContent";
+import { LegalLayout } from "@/components/legal/LegalLayout";
+import { getLegalDoc } from "@/lib/legal";
+import { SITE_URL } from "@/lib/site";
 
-export const metadata: Metadata = { title: "Terms" };
+/** The MDX file this route renders (src/content/legal/terms.mdx). */
+const SLUG = "terms";
 
-export default function TermsPage() {
-  return <PlaceholderPage title="Terms" note="DRAFT - for lawyer review before launch." />;
+export const metadata: Metadata = {
+  title: "Terms of Use",
+  description:
+    "Draft terms of use for Quantmetrics-Lab. A placeholder structure for legal review, not a finished agreement. Research and education only.",
+  // Draft copy must not be indexed before it has been reviewed.
+  robots: { index: false, follow: false },
+  openGraph: {
+    type: "article",
+    url: SITE_URL + "/terms",
+    title: "Terms of Use - Quantmetrics-Lab",
+    description: "Draft terms of use for Quantmetrics-Lab. A placeholder structure for legal review, not a finished agreement. Research and education only.",
+  },
+};
+
+export default async function Page() {
+  const doc = getLegalDoc(SLUG);
+
+  if (!doc) notFound();
+
+  return (
+    <LegalLayout
+      title={doc.title}
+      updated={doc.updated}
+      updatedLabel={doc.updatedLabel}
+      contents={doc.contents}
+    >
+      <MdxContent body={doc.body} />
+    </LegalLayout>
+  );
 }

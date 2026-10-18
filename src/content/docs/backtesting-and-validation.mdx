@@ -1,0 +1,76 @@
+---
+title: Backtesting and validation
+section: Method
+order: 30
+summary: Why a backtest is an argument rather than a proof - overfitting, out-of-sample testing, walk-forward validation and the multiple-testing trap.
+---
+
+A backtest is a conversation with the past. It can tell you that a claim is not obviously wrong,
+given a sample and a set of assumptions. It cannot tell you that the claim is true. This page is
+about the difference, and about the checks a result has to survive before we report it.
+
+Every figure below is illustrative sample data.
+
+## The shape of overfitting
+
+Fit enough configurations to one history and one of them will look excellent. That is arithmetic,
+not skill.
+
+If every configuration has the same expected Sharpe ratio of zero and the same estimation noise,
+the best of $N$ tries is biased upward. For roughly Gaussian estimates the expected maximum grows
+with the number of trials:
+
+$$
+\mathbb{E}\left[\max_i \hat{S}_i\right] \approx \bar{S}
++ \sigma_S \sqrt{2 \ln N}.
+$$
+
+The lesson is not that search is forbidden. It is that the number of trials is part of the result
+and has to be reported with it.
+
+## In-sample, out-of-sample, and the wall between them
+
+The only honest test of a rule is on data the rule has never seen.
+
+- **In-sample** is where parameters are estimated. Performance here is an upper bound on nothing.
+- **Out-of-sample** is held back during estimation and used once, at the end. Used more than once,
+  it slowly becomes in-sample.
+- **A fixed hold-out** is the simplest discipline and the easiest to erode. Every glance at it is a
+  withdrawal.
+
+When a sample is short, holding back a fifth of it can leave too little to fit. That is a reason to
+prefer a sequence of out-of-sample windows over a single split.
+
+## Walk-forward validation
+
+Walk-forward validation re-fits the model on a moving window and scores it only on the step ahead.
+It mimics the way a model would actually be used, and it produces a path of out-of-sample results
+rather than one number.
+
+The cost is compute and the risk of a subtler bias: if any choice was informed by the whole sample,
+the walk-forward is contaminated even though no individual fold overlaps.
+
+## Checks we run before reporting
+
+No single check is decisive. Together they catch most of the ways a backtest can flatter itself.
+
+1. **Shuffle or block-shuffle test.** Re-run the pipeline on data with the predictive structure
+   destroyed. A strategy that still performs is reading noise.
+2. **Parameter sensitivity.** Vary the parameters across a neighbourhood. A cliff at the optimum is
+   a warning; a plateau is reassurance.
+3. **Cost sensitivity.** Raise assumed spreads and slippage until the edge disappears. Report the
+   level at which it does.
+4. **Regime split.** Score the rule in calm and in stressed sub-samples separately, and report both.
+5. **Multiple-testing adjustment.** When many configurations were tried, discount the best result
+   by the number of trials.
+
+## A worked illustration
+
+An illustrative search over **60** parameter pairs reports a best in-sample Sharpe of **1.8**. With
+an illustrative spread of estimation noise of $\sigma_S = 0.4$, the deflation for 60 trials is
+about $0.4 \times \sqrt{2 \ln 60} \approx 1.2$, which would leave an expected best near **0.6**
+even if no configuration had any edge at all.
+
+That is not a verdict on the strategy. It is a statement of how much of the headline number the
+search itself can manufacture, and it is the reason the out-of-sample figure - not the in-sample
+one - is what we quote.

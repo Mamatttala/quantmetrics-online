@@ -19,6 +19,8 @@ export interface StatCellProps {
    * in the reference artwork.
    */
   layout?: "stacked" | "inline";
+  /** Match the inline caption to the number when the band calls for equal type. */
+  inlineCaptionSize?: "label" | "stat";
   align?: "start" | "center";
   className?: string;
 }
@@ -33,6 +35,7 @@ export function StatCell({
   variant = "plain",
   shape = "rounded",
   layout = "stacked",
+  inlineCaptionSize = "label",
   align = "start",
   className,
 }: StatCellProps) {
@@ -53,7 +56,7 @@ export function StatCell({
       <span className="text-stat text-text">{value}</span>
       <span
         className={cn(
-          "text-mono-label",
+          inline && inlineCaptionSize === "stat" ? "text-stat-label uppercase" : "text-mono-label",
           variant === "lavender" ? "text-text/80" : "text-text-muted",
         )}
       >

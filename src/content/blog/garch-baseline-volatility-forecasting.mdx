@@ -1,0 +1,116 @@
+---
+title: "Forecasting volatility with a GARCH(1,1) baseline"
+excerpt: "One defensible starting point for any volatility study: what the GARCH(1,1) recursion actually says, how to fit it in Python, and where it stops being useful."
+date: "2026-09-18"
+category: TUTORIAL
+series:
+  - Volatility Forecasting
+  - Learn
+tags:
+  - GARCH
+  - Volatility
+  - Python
+author: "Mara Ellison"
+authorRole: "Quantitative Research"
+readTime: "11 min read"
+cover: teal-blue
+---
+
+Returns are close to unforecastable. Their *magnitude* is not. That asymmetry is the whole
+reason a volatility model is worth fitting: you will rarely beat the market on direction, but
+the second moment is persistent enough to be modelled, and persistent enough to be useful for
+position sizing, risk limits and option pricing.
+
+## Why a baseline comes first
+
+Before reaching for a long-memory model, a regime-switching model or a neural network, fit the
+simplest process that captures the stylised facts. In daily equity returns those facts are easy
+to list:
+
+- volatility clusters: large moves arrive in groups, not uniformly;
+- the unconditional distribution has fat tails, so a Gaussian fit understates the extremes;
+- volatility mean-reverts slowly, over weeks rather than days;
+- leverage is asymmetric: a negative shock raises future volatility more than a positive shock of
+  the same size.
+
+A GARCH(1,1) model reproduces the first three. It says nothing about the fourth, which is exactly
+why the baseline is worth having: everything a richer model adds should be measured against it.
+
+## The recursion
+
+Write the return as $r_t = \mu + \varepsilon_t$ with $\varepsilon_t = \sigma_t z_t$, where
+$z_t$ is white noise with unit variance. The conditional variance then follows
+
+$$
+\sigma_t^2 = \omega + \alpha \varepsilon_{t-1}^2 + \beta \sigma_{t-1}^2
+$$
+
+with $\omega > 0$, $\alpha \geq 0$ and $\beta \geq 0$. Two features do the work. The
+squared shock $\varepsilon_{t-1}^2$ is the news term: it pulls the variance up when yesterday
+was surprising. The lagged variance $\sigma_{t-1}^2$ is the memory term: it keeps the level
+elevated after the news fades.
+
+The persistence is $\alpha + \beta$, and the unconditional variance is $\omega / (1 - \alpha - \beta)$.
+For a typical daily equity index, persistence lands somewhere between 0.95 and 0.99. That single
+number tells you how slowly the model forgets: a half-life of roughly $\ln(0.5) / \ln(\alpha+\beta)$
+days, which for 0.97 is about three weeks.
+
+## Fitting it in Python
+
+`arch` is the pragmatic choice. It takes a return series in percent, which matters more than it
+should: feed it decimals and the optimiser will quietly return a variance floor near zero.
+
+```python
+import numpy as np
+import pandas as pd
+from arch import arch_model
+
+frame = pd.read_csv("sample_returns.csv", parse_dates=["date"]).set_index("date")
+returns = frame["return"] * 100.0  # the package wants percent, not decimals
+
+model = arch_model(
+    returns,
+    mean="Constant",   # mu
+    vol="GARCH",
+    p=1,
+    q=1,
+    dist="t",          # fat tails, so the likelihood matches the data
+)
+
+res = model.fit(disp="off", update_freq=0)
+print(res.params[["mu", "omega", "alpha[1]", "beta[1]"]])
+print("persistence:", res.params["alpha[1]"] + res.params["beta[1]"])
+
+conditional_vol = res.conditional_volatility / 100.0
+forecast = res.forecast(horizon=22, reindex=False)
+```
+
+The `dist="t"` argument is not decoration. Daily return innovations are not Gaussian, and a
+Student-t likelihood changes both the standard errors and the shape of the extreme quantiles you
+will later read off the fitted model.
+
+## Reading the diagnostics
+
+Two checks carry most of the weight.
+
+**Standardised residuals.** Divide the returns by the fitted conditional volatility and test what
+is left. $\hat{z}_t = \varepsilon_t / \hat{\sigma}_t$ should look like white noise with constant
+variance. If the Ljung-Box statistic on $\hat{z}_t^2$ is still large, the model has left
+structure on the table and $p = q = 1$ is too small.
+
+**Parameter stability.** Refit on expanding windows and watch $\alpha$ and $\beta$. A baseline
+whose parameters drift from 0.08 to 0.25 across a decade is describing two different markets, and
+a single-sample fit is then an average of regimes rather than a description of either.
+
+## Where a baseline breaks
+
+GARCH(1,1) is symmetric. If your instrument is an equity index, the leverage effect is the first
+thing a reviewer will raise: EGARCH, GJR-GARCH and the asymmetric variants in `arch` all add a
+sign-dependent term for exactly this reason.
+
+The second limit is the horizon. Variance forecasts mean-revert to $\omega / (1 - \alpha - \beta)$,
+so beyond roughly one month every GARCH(1,1) forecast looks alike, and the term structure flattens
+whatever the data says. If your question is about a quarter, the baseline is not the answer.
+
+Neither limit makes the baseline useless. It makes it the control group: the number every other
+model has to beat before it earns a place in the pipeline.

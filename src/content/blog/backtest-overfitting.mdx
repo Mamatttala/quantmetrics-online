@@ -1,0 +1,93 @@
+---
+title: "Backtest overfitting: your best parameter set is usually your worst"
+excerpt: "Grid search finds the maximum of a noisy surface. Here is the arithmetic of how much of that peak is signal, and the checks that survive an out-of-sample test."
+date: "2026-09-04"
+category: RESEARCH
+series: Backtesting
+tags:
+  - Backtesting
+  - Overfitting
+  - Validation
+author: "Mara Ellison"
+authorRole: "Quantitative Research"
+readTime: "13 min read"
+cover: sunset
+---
+
+A grid search over sixty parameter pairs reports one winner. That winner is the maximum of sixty
+noisy estimates, and the maximum of a noisy set is biased upward even when none of the
+underlying configurations has any edge at all. The bias has an expected size, and it is worth
+knowing before you commit capital to it.
+
+## The arithmetic of the peak
+
+Suppose every configuration has the same expected Sharpe ratio $\mu = 0$ and the same estimation
+error $s$, so each measured Sharpe is a draw
+$\hat{S}_i \sim \mathcal{N}(0, s^2)$. The best of $N$ independent draws has expected value
+
+$$
+\mathbb{E}\left[\max_i \hat{S}_i\right] \approx s \sqrt{2 \ln N}
+$$
+
+Two consequences fall straight out. The reported Sharpe grows with the logarithm of the number of
+configurations you tried, so a search over 100 pairs inflates the winner by roughly
+$\sqrt{2 \ln 100} \approx 3.03$ standard errors - before any real effect is added. And the
+inflation is invisible in the backtest itself, because the backtest *is* the maximum.
+
+This is why the number of trials belongs in the report next to the performance number. A Sharpe
+of 1.4 found after twenty trials and a Sharpe of 1.4 found after twenty thousand are different
+claims.
+
+## Splitting does not save you
+
+A single train/test split is the standard defence, and it is weaker than it looks. If you use the
+test set to choose between five candidate strategies, you have moved the selection problem, not
+removed it. The estimate of the winner's edge on that split is again a maximum, and again biased.
+
+```python
+import numpy as np
+
+def max_sharpe_bias(n_configs, sigma=1.0, trials=20000, seed=11):
+    """Expected best-of-N Sharpe when every config has zero true edge."""
+    rng = np.random.default_rng(seed)
+    draws = rng.normal(0.0, sigma, size=(trials, n_configs))
+    return draws.max(axis=1).mean()
+
+for n in (1, 5, 20, 100, 1000):
+    print(f"n={n:>5}   expectation of the winner = {max_sharpe_bias(n):.3f}")
+```
+
+Run it and the output walks up with $\sqrt{2 \ln N}$ almost exactly. Nothing in the simulation
+has an edge. The winner always does.
+
+## What actually helps
+
+**Deflated Sharpe ratio and multiple-testing corrections.** Adjust the significance of the
+observed Sharpe for the number of trials and the variance of the trial outcomes. The correction
+is not conservative window dressing: it is the difference between testing one hypothesis and
+testing the best of many.
+
+**Combinatorially symmetric cross-validation.** Split the sample into $N$ blocks, hold out every
+possible pair, and report the *distribution* of out-of-sample performance across splits rather
+than a single number. A strategy whose edge lives in one 2014 window will show it immediately.
+
+**Parameter sensitivity as a first-class result.** Plot the performance surface, not just its
+maximum. A stable edge is a plateau: neighbouring parameters produce similar results. A spike is a
+warning. The shape of the surface carries more information than its height.
+
+**Report the search.** How many configurations, chosen how, over what ranges, with which
+constraints. A backtest nobody can reproduce is not evidence.
+
+## The uncomfortable conclusion
+
+The purpose of a backtest is not to demonstrate that a strategy works. It is to try to falsify
+the idea that it does, under conditions that cost something to fail. A process that can only
+confirm is not a test.
+
+The practical version: pre-register the parameter grid, hold the last block of data back and
+touch it once, count the trials, and report the corrected statistic. None of this is elaborate.
+All of it is cheaper than discovering the bias with live capital.
+
+It is not a hypothetical saving either. A $5 commission on a $10,000 position is five basis
+points, and a book that turns over twice as often pays it twice as often: costs of $5 and $10
+per round trip differ by a factor, not by a rounding error. None of that shows up in the peak.

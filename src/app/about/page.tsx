@@ -1,9 +1,179 @@
 import type { Metadata } from "next";
 
-import { PlaceholderPage } from "@/components/layout/PlaceholderPage";
+import { Container } from "@/components/layout/Container";
+import { EyebrowChip } from "@/components/layout/EyebrowChip";
+import { Section } from "@/components/layout/Section";
+import { GradientBanner } from "@/components/ui/GradientBanner";
+import { Button } from "@/components/ui/Button";
+import { SplitArrowButton } from "@/components/ui/SplitArrowButton";
+import { SITE_URL } from "@/lib/site";
 
-export const metadata: Metadata = { title: "About" };
+export const metadata: Metadata = {
+  title: "About",
+  description:
+    "Quantmetrics-Lab is a research lab for quantitative finance: how the research is done, what it is for, and what it deliberately is not. Research and education only, never investment advice.",
+  openGraph: {
+    type: "website",
+    url: SITE_URL + "/about",
+    title: "About - Quantmetrics-Lab",
+    description:
+      "A research lab for quantitative finance: the mission, the method, and what the lab is not.",
+  },
+};
 
+/** The four stages of a study. Data first, because everything downstream inherits it. */
+const METHOD: { label: string; body: string }[] = [
+  {
+    label: "Data",
+    body: "We start from the raw series and record where it came from. Alignment, gaps and outliers are decisions, so they are written down rather than applied silently.",
+  },
+  {
+    label: "Models",
+    body: "We reach for the simplest model that answers the question, state its assumptions out loud, and treat every parameter as an estimate with an error attached.",
+  },
+  {
+    label: "Validation",
+    body: "A result has to survive data it has never seen, sensitivity to its parameters, and an honest count of how many configurations were tried.",
+  },
+  {
+    label: "Reporting",
+    body: "We report what the result does and does not support, including which figures are illustrative, so a worked example is never mistaken for a live number.",
+  },
+];
+
+const NOT_LIST: { title: string; body: string }[] = [
+  {
+    title: "Not investment advice",
+    body: "Nothing here is a recommendation, an offer or a solicitation. Any decision taken on the basis of a method described here is the reader's own.",
+  },
+  {
+    title: "Not a signal service",
+    body: "We do not sell entries, exits or alerts, and we do not tell anyone what to trade. A method that looks promising in a backtest is still a method with a confidence interval around it.",
+  },
+  {
+    title: "Not a black box",
+    body: "We explain the reasoning, the assumptions and the failure modes. If a claim cannot be stated plainly, it is not ready to be published.",
+  },
+];
+
+/**
+ * About (brief F7).
+ *
+ * An editorial page rather than a marketing one: an opening statement, a
+ * mission, the four stages of a study, a plain "what we are not" note, and a
+ * clearly marked team placeholder. The closing band reuses GradientBanner, the
+ * same component the home page closes with, so the two read as one family.
+ */
 export default function AboutPage() {
-  return <PlaceholderPage title="About" note="The mission, method and team land in a later stage." />;
+  return (
+    <main>
+      <Section grid={false} divider={false} spacing="none" innerClassName="pt-14 pb-10">
+        <div className="max-w-[720px]">
+          <EyebrowChip>About</EyebrowChip>
+          <h1 className="text-h2 mt-3 max-w-[20ch]">A lab for method, not for tips</h1>
+          <p className="text-body-lg mt-4 max-w-[62ch] text-text-muted">
+            Quantmetrics-Lab studies quantitative finance in the open: the data, the models and the
+            checks between an idea and a result. This page is about how that work is done, and about
+            the line it deliberately does not cross.
+          </p>
+        </div>
+      </Section>
+
+      <Section grid={false}>
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[200px_minmax(0,1fr)] lg:gap-12">
+          <h2 className="text-mono-label text-text-dim">Mission</h2>
+          <div className="flex max-w-[68ch] flex-col gap-4">
+            <p className="text-body-lg">
+              Quantitative method is taught badly and sold loudly. The techniques are not secret, but
+              the reasoning around them usually is: which assumption was tested, which sample was
+              used, and what happened when the idea was pushed off its home turf.
+            </p>
+            <p className="text-body-lg">
+              The lab exists to close that gap. We take a question, follow it from raw data to a
+              reported metric, and publish the trail. Where a method is useful, we say how. Where it
+              fails, we say that too, because a method whose limits are known is more valuable than a
+              method that only ever looks good.
+            </p>
+            <p className="text-body-lg text-text-muted">
+              Everything is research and education. There is no advice at the end of it, and no
+              attempt to disguise one as the other.
+            </p>
+          </div>
+        </div>
+      </Section>
+
+      <Section grid={4}>
+        <div className="max-w-[68ch]">
+          <h2 className="text-section-heading">How the research is done</h2>
+          <p className="text-meta mt-3">
+            Four stages, in order. Each one assumes the last, which is why data comes first and
+            reporting never comes alone.
+          </p>
+        </div>
+
+        <div className="mt-6 grid grid-cols-1 border-t border-l border-line sm:grid-cols-2 lg:grid-cols-4">
+          {METHOD.map((item) => (
+            <div key={item.label} className="border-r border-b border-line p-4">
+              <p className="text-mono-label text-text-dim">{item.label}</p>
+              <p className="text-meta mt-2">{item.body}</p>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      <Section grid={false}>
+        <div className="max-w-[720px]">
+          <h2 className="text-section-heading">What we are not</h2>
+          <p className="text-meta mt-3">
+            Three boundaries, stated up front so nothing on the site is read as more than it is.
+          </p>
+
+          <ul className="mt-6 flex flex-col border-t border-line">
+            {NOT_LIST.map((item) => (
+              <li key={item.title} className="flex flex-col gap-1 border-b border-line py-4 sm:flex-row sm:gap-6">
+                <span className="text-mono-label w-44 shrink-0 pt-0.5 text-text">{item.title}</span>
+                <span className="text-meta max-w-[58ch]">{item.body}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </Section>
+
+      <Section grid={false}>
+        <div className="max-w-[720px]">
+          <h2 className="text-section-heading">The team</h2>
+          <p className="text-meta mt-3">
+            Named profiles, biographies and credentials are published only once real people have
+            confirmed them.
+          </p>
+
+          <div className="mt-4 rounded-input border border-dashed border-line p-4">
+            <p className="text-mono-label text-text-dim">Placeholder</p>
+            <p className="text-body mt-2 max-w-[62ch]">
+              Team profiles are not published yet. When they are, every entry will name a real
+              person with their own biography and credentials. Nothing is invented here to fill the
+              space: no names, no photographs, no titles, no track record.
+            </p>
+          </div>
+        </div>
+      </Section>
+
+      <GradientBanner
+        variant="teal-blue"
+        radius="none"
+        className="on-gradient-tone px-gutter py-10 lg:py-12"
+      >
+        <Container className="flex flex-col items-center text-center">
+          <h2 className="text-h2 max-w-[24ch] text-on-gradient">Follow the work</h2>
+          <p className="text-body mt-3 max-w-[48ch] text-on-gradient-muted">
+            Start with the methodology documentation, or read the latest research notes from the lab.
+          </p>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <SplitArrowButton href="/docs">Read the docs</SplitArrowButton>
+            <Button href="/blog" variant="outline">Read the blog</Button>
+          </div>
+        </Container>
+      </GradientBanner>
+    </main>
+  );
 }

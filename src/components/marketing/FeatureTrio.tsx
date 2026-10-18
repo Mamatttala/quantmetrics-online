@@ -1,7 +1,8 @@
 import { AnalyzeIcon, ShareIcon, VisualizeIcon } from "@/components/brand/FeatureIcons";
 import { EyebrowChip } from "@/components/layout/EyebrowChip";
 import { Reveal } from "@/components/layout/Reveal";
-import { Section } from "@/components/layout/Section";
+import { GridRail, SectionGrid } from "@/components/layout/SectionGrid";
+import { SectionHeading } from "@/components/layout/SectionHeading";
 import { FeatureCard } from "@/components/ui/FeatureCard";
 
 /**
@@ -32,30 +33,41 @@ const FEATURES = [
 
 export function FeatureTrio() {
   return (
-    <Section grid={false} id="workflow">
-      <Reveal className="flex flex-col items-center text-center">
-        <EyebrowChip>Workflow</EyebrowChip>
-        <h2 className="text-h2 mt-3 max-w-[24ch]">Analyze, visualize, share</h2>
-        <p className="text-meta mt-3 max-w-[56ch]">
-          Every result moves through the same three steps, and each step stays inspectable.
-        </p>
-      </Reveal>
+    <section id="workflow" className="relative">
+      <SectionHeading
+        eyebrow={<EyebrowChip>Workflow</EyebrowChip>}
+        title="Analyze, visualize, share"
+        description="Every result moves through the same three steps, and each step stays inspectable."
+      />
 
-      <Reveal className="mt-6">
-        <ul className="grid grid-cols-1 gap-3 md:grid-cols-3">
-          {FEATURES.map(({ title, description, Icon }) => (
-            <li key={title} className="flex">
-              <FeatureCard
-                title={title}
-                description={description}
-                variant="pink-coral"
-                icon={<Icon className="size-7" />}
-                className="h-full w-full"
-              />
-            </li>
-          ))}
-        </ul>
-      </Reveal>
-    </Section>
+      {/*
+        The card row sits on the scaffold template but draws no vertical rules:
+        these are rounded, bordered cards with gutters between them, and the
+        reference only rules behind flush cell grids. An empty rail cell on each
+        side would eat 12.9% of the width twice over, so this is a RAIL-less row -
+        `rules={false}` keeps the template off while the inner grid does the work.
+      */}
+      <SectionGrid rules={false} bottomRule>
+        <GridRail />
+        <div className="col-span-1 py-10 lg:col-span-3">
+          <Reveal>
+            <ul className="grid grid-cols-1 gap-3 md:grid-cols-3">
+              {FEATURES.map(({ title, description, Icon }) => (
+                <li key={title} className="flex">
+                  <FeatureCard
+                    title={title}
+                    description={description}
+                    variant="pink-coral"
+                    icon={<Icon className="size-7" />}
+                    className="h-full w-full"
+                  />
+                </li>
+              ))}
+            </ul>
+          </Reveal>
+        </div>
+        <GridRail />
+      </SectionGrid>
+    </section>
   );
 }

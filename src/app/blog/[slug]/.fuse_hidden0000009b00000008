@@ -1,0 +1,80 @@
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+
+import { ArticleRail } from "@/components/blog/ArticleRail";
+import { MdxContent } from "@/components/blog/MdxContent";
+import { ArticleLayout } from "@/components/layout/ArticleLayout";
+import { getAllPosts, getPost } from "@/lib/blog";
+
+
+interface ArticlePageProps {
+  params: Promise<{ slug: string }>;
+}
+
+/** Every post is prerendered; the archive is small and build-time known. */
+export function generateStaticParams() {
+  return getAllPosts().map((post) => ({ slug: post.slug }));
+}
+
+export async function generateMetadata({ params }: ArticlePageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const post = getPost(slug);
+
+  if (!post) return { title: "Article" };
+
+  return {
+    title: post.title,
+    description: post.excerpt,
+    openGraph: {
+      type: "article",
+      url: SITE_URL + "/blog/" + post.slug,
+      title: post.title,
+      description: post.excerpt,
+      publishedTime: post.date,
+      tags: post.tags,
+    },
+  };
+}
+
+/**
+ * The article page (brief F4): the shared ArticleLayout shell, the compiled MDX
+ * body (code blocks and KaTeX maths included) and the sticky rail, which is
+ * assembled here from the exported rail pieces so Insights can assemble its own
+ * later without touching the layout.
+ */
+export default async function ArticlePage({ params }: ArticlePageProps) {
+  const { slug } = await params;
+  const post = getPost(slug);
+
+  if (!post) notFound();
+
+  return (
+    <ArticleLayout
+      backHref="/blog"
+      backLabel="All posts"
+      title={post.title}
+      standfirst={post.excerpt}
+      category={post.category}
+      date={post.dateLabel}
+      readTime={post.readTime}
+      tags={post.tags}
+      author={{ name: post.author, role: post.authorRole }}
+      cover={post.cover}
+      coverTitle={post.series}
+      sidebar={
+        <ArticleRail
+          shareUrl={SITE_URL + "/blog/" + post.slug}
+          shareTitle={post.title}
+          contents={post.contents}
+        />
+      }
+      footer={
+        <p className="text-meta border-t border-line pt-4">
+          Content is for research and education only and is not investment advice.
+        </p>
+      }
+    >
+      <MdxContent body={post.body} />
+    </ArticleLayout>
+  );
+}

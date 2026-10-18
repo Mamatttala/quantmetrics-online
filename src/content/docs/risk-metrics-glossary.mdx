@@ -1,0 +1,88 @@
+---
+title: Risk metrics glossary
+section: Method
+order: 40
+summary: The handful of numbers we report most often - value at risk, expected shortfall, drawdown and the Sharpe ratio - with their definitions and formulas.
+---
+
+A metric is a decision about what to look at, and every one of them is blind to something. This
+page defines the measures we report most often, in the form we use them, and names what each one
+leaves out.
+
+All figures on this page are illustrative sample data.
+
+## Value at risk
+
+Value at risk answers a narrow question: over a given horizon, at a given confidence level, how
+much can be lost? Formally, the loss $L$ exceeds the quantile only with probability $1 - \alpha$
+
+$$
+P\left(L > \operatorname{VaR}_\alpha\right) = 1 - \alpha.
+$$
+
+Under a normal assumption with mean $\mu$ and volatility $\sigma$, the parametric form is
+
+$$
+\operatorname{VaR}_\alpha = -\left(\mu + z_\alpha \sigma\right),
+$$
+
+where $z_\alpha$ is the standard normal quantile at $\alpha$. For $\alpha = 0.99$, $z_\alpha$ is
+about $-2.33$, which is where the familiar multiple comes from.
+
+Three properties matter more than the formula. VaR says nothing about the size of the loss beyond
+the threshold. It is not sub-additive, so the whole can appear riskier than the parts. And it is
+only as good as the distributional assumption behind it, which is exactly the assumption that fails
+in a crisis.
+
+## Expected shortfall
+
+Expected shortfall is the average loss in the tail VaR has already crossed
+
+$$
+\operatorname{ES}_\alpha = \mathbb{E}\left[L \mid L > \operatorname{VaR}_\alpha\right].
+$$
+
+It answers the question VaR dodges - how bad is bad - and it is sub-additive, which is why
+regulatory practice has moved toward it. The cost is that it is harder to estimate, because the
+tail contains the fewest observations.
+
+## Drawdown
+
+Drawdown measures distance from a previous peak, and it is the number that describes what an
+investor actually experiences. With a portfolio value path $PV_t$,
+
+$$
+\operatorname{DD}_t = \frac{PV_t - \max_{s \le t} PV_s}{\max_{s \le t} PV_s}.
+$$
+
+Drawdown is expressed as a negative percentage. Two derived quantities are reported alongside it.
+
+- **Maximum drawdown** is the worst value of $\operatorname{DD}_t$ over the sample.
+- **Duration** is the time from peak to recovery, which the depth alone does not capture.
+
+An illustrative path that falls **22%** and takes **14 months** to recover has a maximum drawdown of
+**-22%** and a duration of **14 months**; the annualised return over the same window says nothing
+about how that felt.
+
+## Sharpe ratio
+
+The Sharpe ratio divides excess return by volatility, and it is the most quoted and most abused
+number in performance reporting.
+
+$$
+S = \frac{\bar{r} - r_f}{\sigma_r}.
+$$
+
+It assumes returns are roughly independent and identically distributed, and it penalises upside
+volatility exactly as much as downside. It is also trivially inflated by short samples, by
+autocorrelated returns, and by choosing a start date after a bad run. When we quote it, we quote the
+sample length beside it.
+
+## Reporting discipline
+
+Four habits keep these numbers honest.
+
+1. Always state the horizon and the confidence level; a VaR without them is meaningless.
+2. Report the sample length with any ratio.
+3. Pair a return measure with a drawdown measure, because one alone invites a bad decision.
+4. Label every illustrative figure, so a worked example is never mistaken for a tracked result.

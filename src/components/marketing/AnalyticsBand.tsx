@@ -13,21 +13,17 @@ import { SplitArrowButton } from "@/components/ui/SplitArrowButton";
  */
 export function AnalyticsBand() {
   return (
-    <section aria-labelledby="analytics-band-title">
+    <section aria-labelledby="analytics-band-title" className="border-y border-line-strong">
       <GradientBanner
         variant="teal-blue"
         radius="none"
-        className="on-gradient-tone px-gutter py-12 lg:py-16"
+        className="on-gradient-tone px-gutter py-10 lg:py-12"
       >
         <Container className="flex flex-col items-center text-center">
           <h2 id="analytics-band-title" className="text-h2 max-w-[24ch] text-on-gradient">
             Turn Market Noise Into Insights
           </h2>
-          <p className="text-body-lg mt-3 max-w-[56ch] text-on-gradient-muted">
-            Clean datasets, documented methods and dashboards that hold up when someone else reads
-            them.
-          </p>
-          <SplitArrowButton href="/services" className="mt-5">
+          <SplitArrowButton href="/services" className="mt-6">
             Request access
           </SplitArrowButton>
         </Container>

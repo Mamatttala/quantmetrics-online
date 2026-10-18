@@ -1,0 +1,103 @@
+---
+title: "Stationarity, and why every model quietly assumes it"
+excerpt: "Unit roots, spurious regression and the two tests worth running before you trust a coefficient. A short guide to the assumption underneath almost every time-series model."
+date: "2026-09-11"
+category: GUIDE
+series:
+  - Time Series 101
+  - Learn
+tags:
+  - Stationarity
+  - Unit Root
+  - Diagnostics
+author: "Ilias Rahman"
+authorRole: "Econometrics"
+readTime: "9 min read"
+cover: pink-coral
+---
+
+Almost every classic result in time-series econometrics is proved under an assumption that is
+rarely stated out loud: the process is stationary. Regressions still run without it. They simply
+stop meaning what you think they mean.
+
+## What stationary means, in one paragraph
+
+A series is (weakly) stationary when its mean, variance and autocovariance do not depend on the
+calendar. The mean can be non-zero, the level can drift around a trend, but the *rules generating
+the series* must be the same in 2011 and in 2026. If they are not, a sample mean is not an
+estimate of anything: it is an average of different processes, and a t-statistic on it has no
+fixed distribution to compare against.
+
+## The unit root
+
+The distinction that matters in practice is between two ways of writing "the level wanders":
+
+Trend-stationary, where shocks decay:
+
+$$
+y_t = a + b t + \varepsilon_t, \qquad \varepsilon_t \sim \text{white noise}
+$$
+
+And difference-stationary, where shocks accumulate forever:
+
+$$
+y_t = y_{t-1} + \varepsilon_t
+$$
+
+Both look like a rising line on a chart. They are not the same object. In the first, a shock of
+size $\varepsilon$ has an effect that dies out; the forecast eventually returns to the trend. In
+the second, the effect of that shock is permanent: the entire future path is shifted by
+$\varepsilon$, and the variance of $y_t$ grows without bound, $\operatorname{Var}(y_t) = t \sigma^2$.
+
+Financial levels - prices, indices, exchange rates - are almost always the second kind. Returns
+are almost always the first. That is why the default in empirical work is to model differences,
+and why the argument over "level or difference" is really an argument about which process
+generated the data.
+
+## Spurious regression
+
+The failure mode has a name and a demonstration. Take two independent random walks:
+
+```python
+import numpy as np
+import statsmodels.api as sm
+
+rng = np.random.default_rng(7)
+x = np.cumsum(rng.normal(size=250))
+y = np.cumsum(rng.normal(size=250))   # independent of x by construction
+
+model = sm.OLS(y, sm.add_constant(x)).fit()
+print(f"t = {model.tvalues[1]:.2f}   r2 = {model.rsquared:.2f}")
+```
+
+Run it and you will get t-statistics well past the conventional critical values and an
+$R^2$ that looks respectable. The two series share nothing. The regression is picking up the
+fact that both wandered, not a relationship between them. This is Granger and Newbold's
+spurious regression, and the only defence is to test the order of integration first.
+
+## Two tests, and what they disagree about
+
+**Augmented Dickey-Fuller.** Regress $\Delta y_t$ on $y_{t-1}$ and lagged differences, and
+test whether the coefficient on the level is zero. The null hypothesis is a unit root, so a small
+p-value is evidence *against* non-stationarity - a double negative that trips up most first
+readings. Lags are included to absorb autocorrelation, and the lag length changes the answer more
+often than people admit.
+
+**KPSS.** Same question, inverted null: the series is stationary as the null. Run both. When ADF
+fails to reject and KPSS rejects, the case for differencing is strong. When ADF rejects and KPSS
+does not, you have a stationary series and no reason to difference it. When they disagree with
+each other, that is usually the signature of a near-unit-root process or a structural break, and
+the honest response is to look at the plot rather than to pick the test you prefer.
+
+## What to do about it
+
+- Test before you model, and report the lag length and the deterministic terms you chose.
+- Difference when the level has a unit root, and remember that differencing removes the
+  long-run component along with the trend.
+- If two $I(1)$ series are cointegrated, do not difference them away: the cointegrating
+  regression is the result, and the error-correction term is the interesting part.
+- A structural break looks like a unit root to both tests. If there is a known regime change in
+  the sample, model it explicitly instead of differencing around it.
+
+Stationarity is not a technicality to get past. It decides whether the number you report is a
+feature of the data or an artefact of the sample window.

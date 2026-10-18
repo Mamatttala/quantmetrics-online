@@ -1,0 +1,49 @@
+import type { Metadata } from "next";
+import { SITE_URL } from "@/lib/site";
+
+import { BriefBrowser } from "@/components/insights/BriefBrowser";
+import { EyebrowChip } from "@/components/layout/EyebrowChip";
+import { Section } from "@/components/layout/Section";
+import { BRIEF_CATEGORIES, getAllBriefs, toBriefSummary } from "@/lib/briefs";
+
+export const metadata: Metadata = {
+  title: "Insights",
+  description:
+    "AI-generated intelligence briefs on quantitative method: volatility regimes, cross-asset behaviour, macro context and research ideas. Illustrative sample data, for research and education only.",
+  openGraph: {
+    type: "website",
+    url: "SITE_URL + "/insights",
+    title: "Insights - Quantmetrics-Lab",
+    description:
+      "AI-generated intelligence briefs on quantitative method: volatility, markets, macro and research ideas.",
+  },
+};
+
+/**
+ * The insights index (brief F3). Same shape as the blog index: the server reads
+ * the MDX archive once at build time and hands the client a plain array of
+ * summaries, so the chips and search filter locally. No series rail here - a
+ * brief stands on its own rather than belonging to a series.
+ */
+export default function InsightsPage() {
+  const briefs = getAllBriefs().map(toBriefSummary);
+
+  return (
+    <main>
+      <Section grid={false} divider={false} spacing="none" innerClassName="pt-10 pb-4">
+        <div className="flex flex-col items-center text-center">
+          <EyebrowChip>Intelligence briefs</EyebrowChip>
+          <h1 className="text-h2 mt-3 max-w-[22ch]">Insights</h1>
+          <p className="text-meta mt-3 max-w-[58ch]">
+            Short, machine-drafted briefs on volatility, cross-asset behaviour and method.
+            Every figure is illustrative sample data, and nothing here is investment advice.
+          </p>
+        </div>
+      </Section>
+
+      <Section grid={3} spacing="none" innerClassName="pt-4 pb-12">
+        <BriefBrowser briefs={briefs} categories={BRIEF_CATEGORIES} />
+      </Section>
+    </main>
+  );
+}

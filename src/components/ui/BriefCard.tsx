@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { AiBadge } from "@/components/ui/AiBadge";
 import { Chip } from "@/components/ui/Chip";
 import { cn } from "@/lib/utils";
 
@@ -26,8 +27,9 @@ const COVER_FILL: Record<BriefCoverVariant, string> = {
 
 /**
  * Intelligence-brief card (brief F3): 24px radius, title, two-line excerpt, a
- * category chip and date, and a gradient cover carrying a serif title. Insight
- * briefs reuse this card, so the whole surface is one link.
+ * category chip and date, a gradient cover carrying a serif title, and the
+ * AI-generated badge that marks machine-drafted copy. The home rail and the
+ * insights index both render this card, so the whole surface is one link.
  */
 export function BriefCard({
   title,
@@ -51,9 +53,7 @@ export function BriefCard({
       <div className="flex flex-1 flex-col gap-2 p-4">
         <div className="flex flex-wrap items-center gap-2">
           <Chip variant="tag">{category}</Chip>
-          <span className="rounded-pill bg-bg-hover px-2 py-0.5 text-mono-label text-text-muted">
-            AI-generated
-          </span>
+          <AiBadge />
         </div>
 
         <h3 className="text-card-title text-text underline-offset-[3px] group-hover:underline">{title}</h3>

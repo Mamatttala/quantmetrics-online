@@ -1,0 +1,57 @@
+---
+title: Introduction
+section: Getting started
+order: 1
+summary: What Quantmetrics-Lab is, what these docs cover, and the research-and-education scope they are written under.
+---
+
+Quantmetrics-Lab is a research lab for quantitative finance. We collect market data, clean it,
+fit models to it and report what the results do and do not support. These pages document how we
+work - the data we start from, the models we reach for, the checks a result has to survive, and
+the metrics we report it with.
+
+This is methodology and platform documentation, not developer API documentation. Nothing here is
+a recipe for a trade. Every figure is a worked example rather than a live number, and anything
+that looks like a measurement is labelled as illustrative sample data.
+
+## Who these pages are for
+
+The docs are written for three readers and assume no more than one of them.
+
+- A researcher who wants the reasoning behind a method, including its assumptions and failure
+  modes.
+- An analyst or trader who wants to reproduce a result and needs to know which knobs were turned.
+- A newcomer who wants the vocabulary first and the mathematics second.
+
+Every page is written so the first section stands alone. If you only read the opening paragraph of
+a page, you should still know what the method is for.
+
+## How to read them
+
+The pages are ordered as a short course rather than as a reference list. Data sources and cleaning
+comes first because every later result inherits its quality. The volatility modelling overview
+introduces the family of models we use most. Backtesting and validation explains how a fitted model
+earns trust. The risk metrics glossary defines the handful of numbers we report, and the glossary
+collects the terms that appear across all of them.
+
+Use the sidebar to move in reading order, or the list on the right to jump within a page. The
+previous and next links at the foot of every page follow the same order as the sidebar.
+
+## Scope and limits
+
+Our work is research and education. It is not investment advice, it is not a trading signal, and
+it is not a recommendation to buy or sell anything. Where a method has a defensible use in a real
+portfolio, we describe the method and leave the decision to the reader.
+
+Three limits are worth stating plainly at the start, because they shape every page that follows.
+
+1. Models are approximations. A good fit is not evidence that the underlying process is known; it
+   is evidence that the approximation is locally useful.
+2. Data is imperfect. Cleaning choices are judgements, and a different judgement can move a result.
+3. Backtests are arguments, not proofs. A backtest shows that a claim is not obviously wrong, given
+   the sample and the assumptions.
+
+## Where to next
+
+If you are new to the lab, read [Data sources and cleaning](/docs/data-sources-and-cleaning) next.
+If you already know which method you need, use the sidebar.

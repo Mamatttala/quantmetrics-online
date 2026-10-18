@@ -8,6 +8,7 @@ import { Hero } from "@/components/marketing/Hero";
 import { LatestBriefs } from "@/components/marketing/LatestBriefs";
 import { TrustStrip } from "@/components/marketing/TrustStrip";
 import { SampleDataPanel } from "@/components/marketing/SampleDataPanel";
+import { SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: {
@@ -17,7 +18,7 @@ export const metadata: Metadata = {
     "Institutional-grade quantitative research: backtesting, econometric modelling, risk analytics and AI-generated market briefs. Built for researchers, traders and newcomers - for research and education only, not investment advice.",
   openGraph: {
     type: "website",
-    url: "https://quantmetrics.online",
+    url: SITE_URL,
     title: "Quantmetrics-Lab \u2014 Quantitative intelligence for the rhythm of markets",
     description:
       "Institutional-grade data analysis, research and AI-generated briefs, in one lab. For research and education only, not investment advice.",

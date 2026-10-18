@@ -11,8 +11,10 @@ import {
 } from "@/components/brand/CapabilityIcons";
 import { EyebrowChip } from "@/components/layout/EyebrowChip";
 import { Reveal } from "@/components/layout/Reveal";
-import { Section } from "@/components/layout/Section";
+import { GridRail, GridRule, SectionGrid } from "@/components/layout/SectionGrid";
+import { SectionHeading } from "@/components/layout/SectionHeading";
 import { Button } from "@/components/ui/Button";
+import { cn } from "@/lib/utils";
 
 interface Capability {
   title: string;
@@ -72,43 +74,86 @@ const CELL_CLASSES = [
   "hover:bg-bg-hover focus-visible:bg-bg-hover",
 ].join(" ");
 
+function CapabilityRow({ capabilities }: { capabilities: Capability[] }) {
+  return (
+    <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+      {capabilities.map(({ title, description, href, Icon }) => (
+        <li
+          key={title}
+          className={cn(
+            "border-b border-line-grid lg:border-b-0",
+            // The dividers between columns come from the cell borders on
+            // smaller screens; from lg up the page rules sit on those seams.
+            "md:border-r lg:border-r-0",
+          )}
+        >
+          <Link href={href} className={CELL_CLASSES}>
+            <h3 className="text-cell-title pr-8 text-text">{title}</h3>
+            <p className="text-meta mt-2">{description}</p>
+            <span
+              aria-hidden="true"
+              className="absolute right-3 top-3 flex size-6 items-center justify-center rounded-input border border-line text-text-muted transition-colors duration-[var(--dur-hover)] ease-[var(--ease-standard)] group-hover:border-text/40 group-hover:text-text"
+            >
+              <Icon />
+            </span>
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 /**
- * "What you can do" (brief F1.4): a hairline-bordered grid of cells, each with an
- * 18px title, a muted description and a 48px outlined icon box. Every cell is a
- * link, so the whole surface is the target and the hover wash reads as one cell.
+ * "What you can do" (brief F1.4).
+ *
+ * Reworked onto the site scaffold so it matches the reference: the cells sit in
+ * the three middle columns of the page grid and are separated by the page's own
+ * vertical rules, rather than being boxed inside a self-drawn border. The
+ * reference keeps those rules scoped to the cell matrix and uses horizontal
+ * rules between rows, which is what this does - a full-bleed `GridRule` between
+ * rows, no outer frame, no left/right borders on the cells at desktop.
+ *
+ * The heading and the CTA sit on the content measure (the three middle columns),
+ * not on the full viewport, so they stay optically centred with the grid.
  */
 export function CapabilityGrid() {
   return (
-    <Section grid={false} id="capabilities">
-      <Reveal className="flex flex-col items-center text-center">
-        <EyebrowChip>Capabilities</EyebrowChip>
-        <h2 className="text-h2 mt-3 max-w-[26ch]">Six ways to work with market data</h2>
-      </Reveal>
+    <section id="capabilities" className="relative">
+      <SectionHeading
+        eyebrow={<EyebrowChip>Capabilities</EyebrowChip>}
+        title="Six ways to work with market data"
+        titleWidth={26}
+      />
 
-      <Reveal className="mt-6">
-        <ul className="grid grid-cols-1 border-t border-l border-line md:grid-cols-2 lg:grid-cols-3">
-          {CAPABILITIES.map(({ title, description, href, Icon }) => (
-            <li key={title} className="border-r border-b border-line">
-              <Link href={href} className={CELL_CLASSES}>
-                <h3 className="text-cell-title pr-8 text-text">{title}</h3>
-                <p className="text-meta mt-2">{description}</p>
-                <span
-                  aria-hidden="true"
-                  className="absolute right-3 top-3 flex size-6 items-center justify-center rounded-input border border-line text-text-muted transition-colors duration-[var(--dur-hover)] ease-[var(--ease-standard)] group-hover:border-text/40 group-hover:text-text"
-                >
-                  <Icon />
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </Reveal>
+      <SectionGrid bottomRule>
+        <GridRail />
 
-      <Reveal className="mt-6 flex justify-center">
-        <Button href="/services" variant="outline" trailingArrow>
-          Explore all
-        </Button>
-      </Reveal>
-    </Section>
+        <Reveal className="col-span-1 lg:col-span-3">
+          <CapabilityRow capabilities={CAPABILITIES.slice(0, 3)} />
+        </Reveal>
+
+        <GridRail />
+        <GridRule />
+
+        <GridRail />
+        <Reveal className="col-span-1 lg:col-span-3">
+          <CapabilityRow capabilities={CAPABILITIES.slice(3)} />
+        </Reveal>
+
+        <GridRail />
+      </SectionGrid>
+
+      <SectionGrid rules={false} bottomRule>
+        <GridRail />
+        <div className="col-span-1 flex justify-center px-3 pt-8 pb-10 lg:col-span-3">
+          <Reveal>
+            <Button href="/services" variant="outline" trailingArrow>
+              Explore all
+            </Button>
+          </Reveal>
+        </div>
+        <GridRail />
+      </SectionGrid>
+    </section>
   );
 }

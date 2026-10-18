@@ -20,9 +20,26 @@ export interface CheckboxProps {
   disabled?: boolean;
   /** 12px muted supporting text, as in the sign-up panel. */
   description?: ReactNode;
+  /**
+   * `compact` drops the label to 12px muted - the marketing-consent line in the
+   * auth panel (brief F6). `default` is the 14px form checkbox.
+   */
+  size?: CheckboxSize;
   className?: string;
   onChange?: ChangeEventHandler<HTMLInputElement>;
 }
+
+export type CheckboxSize = "default" | "compact";
+
+const OUTER_TEXT: Record<CheckboxSize, string> = {
+  default: "text-meta",
+  compact: "text-[0.75rem] leading-[1.4]",
+};
+
+const LABEL_TEXT: Record<CheckboxSize, string> = {
+  default: "text-text",
+  compact: "text-text-dim",
+};
 
 /** Native checkbox tinted through `accent-color`, so it stays keyboard-safe. */
 export function Checkbox({
@@ -38,6 +55,7 @@ export function Checkbox({
   defaultChecked,
   disabled,
   description,
+  size = "default",
   className,
   onChange,
 }: CheckboxProps) {
@@ -66,8 +84,8 @@ export function Checkbox({
           aria-describedby={message ? fieldMessageId(fieldId) : undefined}
           onChange={onChange}
         />
-        <span className="text-meta">
-          <span className="text-text">{label}</span>
+        <span className={OUTER_TEXT[size]}>
+          <span className={LABEL_TEXT[size]}>{label}</span>
           {description ? <span className="text-text-dim"> {description}</span> : null}
         </span>
       </label>

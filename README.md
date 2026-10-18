@@ -23,13 +23,40 @@ Content on this site is for research and education only and is **not investment 
 | 7- | Review: footer rebuilt on the hairline grid, duplicate closing banner removed, band renamed | done |
 | 7 | Services: dark hero, five-cell stats band, research / analysis / metrics, tag block, workflow tabs | done |
 | 7+ | Review round: navbar hover box, Get started CTA, corner theme toggle, two-state buttons, footer ruled grid, supplied trust marks | done |
-| 8+ | Blog, Insights, Contact, auth, About, Docs, legal, 404 | not started |
+| 8 | Blog: index with series rail, filters and search; article page; `ArticleLayout`; MDX + KaTeX pipeline | done |
+| 9 | Insights: index, brief detail page on the shared `ArticleLayout`, AI-brief content layer | done |
+| 10 | Contact: validated form and stub API route. Auth: mocked split-screen sign-up / sign-in | done |
+| 11 | About, Docs, legal pages, 404, error boundary and the `/blog/learn` hub | done |
+| 12 | Launch readiness: `robots.txt`, `sitemap.xml`, share image, dead-code sweep | done |
 
 The home page carries the hero and its stats band, the trust strip, the capabilities grid, the
 audience tabs, the Analyze/Visualize/Share trio, the sample-data preview, the latest-briefs row
 and one closing teal-to-blue band. `/services` adds the dark hero with the wave artwork, the
 five-cell stats band, the three service sections, the tag block and the workflow tabs.
 `/styleguide` is a temporary internal page and is excluded from indexing.
+
+Every header and footer link now resolves to real content: `/blog` + `/blog/[slug]`,
+`/blog/learn`, `/insights` + `/insights/[slug]`, `/contact`, `/about`, `/docs` +
+`/docs/[...slug]`, `/auth/login`, `/auth/signup`, `/terms`, `/privacy` and `/copyright`, plus
+the root `not-found.tsx` and `error.tsx`. Two endpoints and flows are deliberate stubs - the
+contact route delivers nothing and auth is mocked (see "Stubs and seams").
+
+### Build state
+
+Route count and static-ness as of stage 11:
+
+| Route | Rendering |
+| --- | --- |
+| `/`, `/services`, `/blog`, `/insights`, `/contact`, `/about`, `/docs`, `/blog/learn` | static |
+| `/blog/[slug]` (3 posts), `/insights/[slug]` (4 briefs) | SSG via `generateStaticParams` |
+| `/docs/[...slug]` (6 pages) | SSG via `generateStaticParams` |
+| `/terms`, `/privacy`, `/copyright` | static, `robots: noindex` (draft copy) |
+| `/auth/login`, `/auth/signup` | static, `robots: noindex` |
+| `/api/contact` | dynamic, `POST` only |
+| `/styleguide` | static, `robots: noindex`, temporary |
+
+`npm run typecheck`, `npm run lint` and `npm run build` are the three gates; all three are
+green on the current tree. There is no test runner - see "Testing" for the one script.
 
 ## Getting started
 
@@ -41,8 +68,14 @@ npm run typecheck  # tsc --noEmit
 npm run lint
 ```
 
-`next/font` fetches Newsreader, Inter Tight and JetBrains Mono at build time and self-hosts
-them; the first `npm run build`/`npm run dev` after a clean `.next` needs network access.
+Fonts are **self-hosted** from `src/fonts/` through `next/font/local`, so neither the build
+nor the browser ever reaches `fonts.googleapis.com`. The four files there are the latin
+variable subsets of Newsreader (normal + italic), Inter Tight and JetBrains Mono; their names
+follow the `@fontsource-variable/newsreader`, `@fontsource-variable/inter-tight` and
+`@fontsource-variable/jetbrains-mono` packages (`files/*-latin-wght-*.woff2`), which are the
+drop-in source for them. `layout.tsx` loads them with the same `--font-newsreader`,
+`--font-inter-tight` and `--font-jetbrains-mono` variables, the same variable weight ranges
+and `display: swap` as the previous `next/font/google` setup.
 
 ## Folder structure
 
@@ -56,20 +89,45 @@ src/
                            #   workflow, data preview, briefs, analytics band
     services/page.tsx      # stage 7: hero, stats band, research / analysis / metrics,
                            #   tag block, workflow tabs
-    insights|blog|contact/page.tsx            # stage 3 placeholders (title only)
-    auth/login|signup/page.tsx                # stage 3 placeholders
-    about|docs|terms|privacy|copyright/page.tsx  # stage 4 placeholders (title only)
-    blog/learn/page.tsx                          # stage 4 placeholder (title only)
+    blog/
+      page.tsx             # stage 8: index - series rail, filters, search, card grid
+      [slug]/page.tsx      # stage 8: SSG article on the shared ArticleLayout
+      learn/page.tsx       # stage 11: BlogBrowser narrowed to the Learn series
+    insights/
+      page.tsx             # stage 9: index - filters, search, card grid, no series rail
+      [slug]/page.tsx      # stage 9: SSG brief with takeaways + methodology boxes
+    docs/
+      page.tsx             # stage 11: renders the first page of the reading order
+      [...slug]/page.tsx   # stage 11: SSG docs page in the three-column shell
+    contact/page.tsx       # stage 10: server page over ContactForm + ContactInfoCard
+    about/page.tsx         # stage 11: mission, method band, team placeholder, CTA
+    auth/
+      login/page.tsx       # stage 10: thin noindex page over AuthPanel mode="login"
+      signup/page.tsx      # stage 10: thin noindex page over AuthPanel mode="signup"
+    terms|privacy|copyright/page.tsx  # stage 11: thin noindex pages over LegalLayout
+    api/contact/route.ts   # stage 10: POST-only stub - validates, delivers nothing
+    robots.ts              # stage 12: robots.txt
+    sitemap.ts             # stage 12: sitemap.xml, derived from the content layers
+    opengraph-image.jpg    # stage 12: 1200x630 share image (file convention)
+    not-found.tsx          # stage 11: root 404
+    error.tsx              # stage 11: client error boundary
     styleguide/
       page.tsx             # TEMPORARY token + component preview (both themes)
       TabsDemo.tsx         # client demo wiring TabBar to real tabpanels
   components/
+    auth/                  # AuthSplit (split shell + stepper), AuthPanel (provider pills,
+                           #   mock adapter, signup funnel)
+    blog/                  # MdxContent (MDX + KaTeX), BlogBrowser, ArticleRail,
+                           #   RailShare, NewsletterForm, ArticleBox
+    docs/                  # DocsLayout, DocsNav (filterable sidebar), OnThisPage (scroll-spy)
+    insights/              # BriefBrowser
+    legal/                 # LegalLayout (720px column, DRAFT banner, Contents box)
     brand/                 # Glyph, Logo, SocialIcons (placeholder GitHub / X marks),
-                           #   CapabilityIcons, AudienceIllustrations, FeatureIcons,
-                           #   ServiceArtwork (wave backdrop + three service illustrations)
+                           #   AuthIcons (placeholder provider marks), CapabilityIcons,
+                           #   AudienceIllustrations, FeatureIcons, ServiceArtwork
     layout/                # Container, Section, HairlineGrid, ThemeToggle, EyebrowChip,
                            #   SkipLink, Navbar, MegaMenu, MobileNav, AuthButton, Footer,
-                           #   Reveal, PlaceholderPage (temporary)
+                           #   Reveal, ArticleLayout (shared article shell)
     marketing/             # Hero, HeroBackdrop, TrustStrip, CapabilityGrid, AudienceTabs,
                            #   FeatureTrio, SampleDataPanel, LatestBriefs, AnalyticsBand
     services/              # ServiceHero, ServiceStatsBand, ServiceSection, TagBlock,
@@ -77,26 +135,51 @@ src/
     charts/                # PriceVolatilityChart (ECharts, code-split, token-driven)
     ui/                    # Button, Chip, TabBar, StatCell, Card, FeatureCard,
                            #   GradientBanner, Field, Input, Checkbox, KpiTile,
-                           #   SplitArrowButton, BriefCard, icons
+                           #   SplitArrowButton, BriefCard, BlogCard, AiBadge,
+                           #   Disclaimer, EmptyState, FilterToolbar, icons
+  content/
+    blog/                  # 3 posts (GUIDE, TUTORIAL, RESEARCH)
+    briefs/                # 4 briefs (VOLATILITY, MARKETS, IDEAS, MACRO - one per chip)
+    docs/                  # 6 pages in 3 sections (Getting started, Method, Reference)
+    legal/                 # 3 DRAFT pages (terms, privacy, copyright)
   lib/
+    site.ts                # canonical origin + name + tagline + description (single source)
     theme.ts               # theme resolution, storage, apply, inline init script
     auth.tsx               # AuthProvider + AuthAdapter seam (mock adapter)
-    navigation.ts          # nav items, mega-menu cards, capabilities, footer data
-    briefs.ts              # placeholder brief summaries for the home rail
+    navigation.ts          # nav items, mega-menu cards, capabilities, footer data, trust marks
+    content.ts             # shared MDX helpers: cover vocabulary, heading extraction, guards
+    blog.ts                # blog content layer + series vocabulary + toSummary
+    briefs.ts              # brief content layer + HOME_BRIEFS for the home rail
+    docs.ts                # docs content layer: sections, reading order, prev/next
+    legal.ts               # legal content layer + LEGAL_DRAFT_NOTICE
+    contact.ts             # contact contract: limits, topics, email rule, honeypot, validate
     services.ts            # Services page content: stats, three sections, tag panels, workflow
     sample-series.ts       # seeded synthetic price/volatility series + KPI tiles
     chart-tokens.ts        # resolved design tokens for canvas charts (+ theme observer)
     color.ts               # withAlpha() for canvas area fills
     utils.ts               # cn() class joiner
+    mdx/
+      preprocess-math.mjs  # rewrites $...$ / $$...$$ into JSX before MDX parses
+      remark-heading-ids.mjs  # stable h2/h3 ids shared with the contents sidebars
+  types/
+    gray-matter.d.ts       # ambient declaration for the untyped gray-matter@2
+  mdx-components.tsx       # the element map for compiled MDX (incl. InlineMath/DisplayMath)
+  fonts/                   # self-hosted latin variable woff2 files loaded by next/font/local
+                           #   (see Getting started - no network fetch at build time)
   styles/
     tokens.css             # raw design tokens (dark + light)
+scripts/
+  verify-math-preprocess.mjs  # dependency-free regression test for the maths preprocessor
+  make-og.py                  # regenerates src/app/opengraph-image.jpg (Pillow + numpy)
 ```
 
-`public/logo/` holds the six client-supplied trust-strip marks, served from `/logo/*` and painted
-through a CSS mask. `public/` is otherwise empty and nothing is written to it at runtime.
+`public/logo/` holds the client-supplied trust-strip marks, served from `/logo/*` and painted
+through a CSS mask. `public/` is otherwise empty and nothing is written to it at runtime - in
+particular there is no `robots.txt` or `sitemap.xml` yet, and no share image.
 
-Later stages add `components/article`, `components/auth`, `components/forms`,
-`components/docs`, plus `src/content` (MDX) and `src/types`.
+There is no CI configuration, no `middleware.ts` and no environment file of any kind: nothing in
+the codebase reads `process.env`. Any provider added later (mail, OAuth) will need the first
+`.env.local` and the first server-only secret.
 
 ## Design tokens
 
@@ -140,7 +223,7 @@ into Tailwind's theme namespaces with `@theme inline`, so `bg-bg-elev` compiles 
 | `--surface-deep` | `#0f0f0f`, never overridden by the light block | the theme-invariant dark canvas of the Services hero |
 | `--gradient-deep-halo` | two accent radial gradients (teal, periwinkle, `color-mix`) | the `deep-halo` utility behind the Services hero waves; identical in both themes |
 | `--line-strong` | `rgba(255,255,255,0.5)` dark / `rgba(15,15,15,0.5)` light | The crisp, never-faded hairline for the hero stats band, the trust strip and the nav hover box. On-gradient it resolves to `--on-gradient-line-strong` (0.72 white). Raise it to `#ffffff` for literal pure white. |
-| `--line-grid` | `rgba(255,255,255,0.3)` dark / `rgba(15,15,15,0.3)` light | The footer's ruled grid: outer frame, interior column dividers, title rule and links rule. Solid 1px at 30% alpha, measured off the reference footer. It flips with the theme, because a white hairline on the light canvas would be invisible. One knob: raise the alpha for a harder grid. |
+| `--line-grid` | `rgba(255,255,255,0.3)` dark / `rgba(15,15,15,0.3)` light | 1px at 30% alpha. Kept for a quieter interior grid; **the footer no longer uses it** - the footer grid moved to `--line-strong` (see below), so today nothing reads this token except the styleguide gallery. |
 | `--streak-width` / `--streak-blur` | `190px` / `30px` | vertical-streak pitch and softness, closing CTA banner (stage 6b) |
 | `--streak-line` / `--streak-gap` | `rgba(255,255,255,0.24)` / `rgba(255,255,255,0)` | the streak colour and the transparent part of the repeat tile |
 | `--gradient-streak-sunset` | a repeating vertical streak over `linear-gradient(105deg, --amber, --coral, --coral-alt)` | `gradient-streak-sunset` utility, closing CTA banner |
@@ -226,7 +309,7 @@ field messages and chips do) rather than stacking two colour utilities on one el
 
 | Component | Variants / props | Notes |
 | --- | --- | --- |
-| `Button` | `variant`: primary · outline · text; `size`: default (52px) · compact (40px); `trailingArrow`, `loading`, `disabled`, `fullWidth`, `href` | Renders `next/link` when `href` is set, otherwise a real `<button>`. |
+| `Button` | `variant`: primary · outline · navCta · text; `size`: default (52px) · compact (40px); `trailingArrow`, `loading`, `disabled`, `fullWidth`, `href` | Renders `next/link` when `href` is set, otherwise a real `<button>`. `navCta` is the outlined-then-solid header pill. |
 | `Chip` | `variant`: filter · tag; `active`, `href`, `onClick` | Filter chips are interactive with an active state; tags are static. |
 | `TabBar` | `tabs`, `label`, `value`/`defaultValue`, `onChange`, `size` | `role="tablist"` with roving tabindex; pairs with consumer-rendered `role="tabpanel"`. |
 | `StatCell` | `value`, `caption`, `variant`: plain · lavender, `align` | 40px sans number over a mono caption. |
@@ -276,12 +359,14 @@ is `hidden`. Below `lg` both are out of the way and the mobile menu carries its 
 
 Conventions for later stages:
 
-- Add a route to `HERO_ROUTES` when it opens with a gradient or dark hero; the bar then floats
-  transparent over it.
+- `Navbar.tsx` carries two route lists. `HERO_ROUTES` (`/`, `/services`) suppresses the transparent
+  bar's backdrop so the header floats over a hero; `DARK_HERO_ROUTES` (`/`, `/services`) also
+  switches it to the on-gradient tone so its text stays readable over the home mesh and the dark
+  Services hero. Add a route to both when it opens with a full-bleed hero.
 - Non-hero pages add their own top padding (`pt-16` = 128px clears the 52px bar). `html` carries
   `scroll-padding-top: 72px` so anchors such as `/services#research` are not hidden behind the bar.
-- `/services#research`, `#analysis` and `#metrics` currently land on the placeholder route; the
-  anchors arrive with the real Services page.
+- `/services#research`, `#analysis` and `#metrics` resolve to the three `ServiceSection` blocks on
+  the real Services page; the header mega menu and the footer both deep-link to them.
 
 ## Global footer (stage 4)
 
@@ -291,7 +376,7 @@ Every string and link lives in `src/lib/navigation.ts` next to the header data.
 | Part | Detail |
 | --- | --- |
 | Landmark | A `<footer>` sibling of the page's `<main>`. Each link group is its own `<nav aria-labelledby>` pointing at the id of its mono heading. |
-| Frame | The grid wrapper carries a `border` on all four sides, so the ruled grid is closed at its left, right, top and bottom edges. Every rule comes from `--line-grid`: solid, never faded, never masked. |
+| Frame | The grid wrapper carries a `border` on all four sides, so the ruled grid is closed at its left, right, top and bottom edges. Every rule comes from `--line-strong` (via the `GRID` constant in `Footer.tsx`): solid, never faded, never masked. The grid was originally drawn at `--line-grid` (30%); the review round moved it to `--line-strong` (50%) so the frame reads as a crisp table rule. |
 | Grid | Five equal parts at `lg` - the logo cell, then HOME, SERVICES, INSIGHTS, LEGAL - two at `md`, one below. Every part but the last carries `lg:border-r`, which is what draws the four interior dividers (including the one between the logo cell and HOME). At `md` the logo cell spans both columns, so the divider is drawn after the first and the third link column. Below `lg` the parts stack and only the outer frame is kept. |
 | Title rule | One horizontal hairline separates the part titles from their link rows. Each labelled part draws its own `border-t`, so the four segments form a single unbroken line from the first part to the right-hand frame, and it never crosses the logo cell - matching the reference footer. |
 | Link row | The full width of its part (`w-full`, no outer margin, so it meets the part's hairlines), 44px tall (`h-5.5`), 1px `--line` border, 20px radius (`rounded-row`), 14px text at full contrast, stacked with a 1px gap (`gap-px`) so consecutive rows touch. Hover adds only the background wash: `--fill-faint` (6% of `--text`). |
@@ -317,13 +402,16 @@ structure the reference draws:
 - the interior dividers moved from `border-l` on the labelled parts to `border-r` on every part
   but the last, so all four dividers exist - the logo/HOME one included;
 - the links row got its own `border-b`, so a single rule separates the columns from the legal row;
-- every rule now comes from `--line-grid` (solid, 1px, 30% alpha) instead of `--line-strong`, so
-  the grid is quieter than the hairline bands above it, as in the reference;
+- every rule now comes from `--line-strong` (solid, 1px, 50% alpha). The review round first moved
+  the grid to `--line-grid` (30%) to make it quieter than the hairline bands above it, then a
+  later round moved it back up to `--line-strong` so the frame reads as a crisp table rule with
+  four inward corners;
 - measured at 1920: a 1466px frame from x = 227 to x = 1693, a 293px logo cell, four 293px
   columns, dividers at x = 521 / 814 / 1106 / 1399, and one 1px rule under the links row.
 
-`FOOTER_HEADLINE` and `FOOTER_CTA` are kept in `src/lib/navigation.ts` but nothing imports them
-any more. Brief section H still specifies that row, so they are retained rather than deleted.
+`FOOTER_HEADLINE` and `FOOTER_CTA` are dead code: the row they describe was removed on client
+instruction, so nothing imports either constant. They are still in `src/lib/navigation.ts` only
+because brief section H specifies the row; delete them once that brief is superseded.
 
 ## Home hero (stage 5)
 
@@ -341,7 +429,7 @@ document, so the fixed header floats over the mesh rather than sitting above it.
 | Stats strip | A **full-bleed** translucent lavender band (`bg-lavender` on the band, not the cells) closed by `border-y border-line-strong`, so both rules run past the container to the viewport edges. Three equal `StatCell`s at `layout="inline"` (40px sans number with the mono label on the same baseline), `shape="square"`, each carrying `border-x border-line-strong` plus `-ml-px` so the vertical rules run the full band height, mark the container edges and never double up. Below `sm` the strip becomes a horizontal snap scroller. |
 | Reveal | `Reveal` wraps the copy: opacity 0 to 1 and translateY(16px) to 0 over `--dur-reveal` (600ms). |
 | Trust strip | `TrustStrip`: a full-bleed band flush under the stats strip. It carries `border-t` + `border-b border-line-strong`, so the stats band and the strip share one hairline; every cell carries `border-l border-line-strong` and the list carries the right one, so the verticals stay continuous as the grid goes 2 -> 3 -> 6 columns. The cell is 96px tall (`h-12`), measured off the reference band (about 94px). |
-| Trust marks | The six client-supplied PNGs in `public/logo/` are painted through the `mark-mask` utility - a CSS mask filled with `currentColor` - so one tonal treatment covers every mark and both themes. The artwork is stored white only, and a plain `<img>` would therefore disappear on the light canvas. Each mark is 40px tall at 60% opacity, full opacity on hover. |
+| Trust marks | The six client-supplied PNGs in `public/logo/` are painted through the `mark-mask` utility - a CSS mask filled with `currentColor` - so one tonal treatment covers every mark and both themes. The artwork is stored white only, and a plain `<img>` would therefore disappear on the light canvas. Each mark sits in a 40px-tall box (`h-5` on the 8px scale) at 80% opacity, full opacity on hover, and carries a per-mark `scale` for optical size correction (see below). |
 | Metadata | `page.tsx` sets the home title and a research/education description that states the content is not investment advice. |
 
 ### Scroll reveal
@@ -427,6 +515,240 @@ block's own 24px padding below that, so the heading sits under the bar rather th
 `DARK_HERO_ROUTES`, because the Services hero is a dark canvas rather than a mesh). The comment in
 that file already anticipated the change. Without it the bar would keep the theme's dark text in
 light theme and be near-invisible over the dark hero.
+## Content pipeline (stages 8-11)
+
+Four MDX archives feed the site, and they share one pattern rather than four copies of it.
+
+| Archive | Directory | Module | Count | Drives |
+| --- | --- | --- | --- | --- |
+| Blog | `src/content/blog` | `src/lib/blog.ts` | 3 | `/blog`, `/blog/[slug]`, `/blog/learn`, the home rail |
+| Briefs | `src/content/briefs` | `src/lib/briefs.ts` | 4 | `/insights`, `/insights/[slug]`, `HOME_BRIEFS` |
+| Docs | `src/content/docs` | `src/lib/docs.ts` | 6 | `/docs`, `/docs/[...slug]` |
+| Legal | `src/content/legal` | `src/lib/legal.ts` | 3 | `/terms`, `/privacy`, `/copyright` |
+
+Each module reads its directory once per process with `gray-matter`, caches the parsed array in a
+module-level variable, and exports `getAll*`, `get*Slugs`, `get*` and a `toSummary` that returns
+the serialisable slice for the client browser. Bodies never leave the server: the index grids get
+a title, an excerpt and a cover, nothing more. Shared pieces - the cover vocabulary, the heading
+extractor, the frontmatter guards, the date formatter - live in `src/lib/content.ts`, so a cover
+typo falls back instead of throwing and a missing required field names the file it came from.
+
+`@next/mdx` is **not** in the chain. It turns every `.mdx` file into a route, which is the opposite
+of what a frontmatter-driven archive needs. `MdxContent.tsx` compiles the body itself with
+`compile` + `run` from `@mdx-js/mdx` on the server, so the article routes stay statically generated
+and a stray file never appears in the route table.
+
+### Frontmatter by archive
+
+| Archive | Required | Optional |
+| --- | --- | --- |
+| Blog | `title`, `excerpt`, `date`, `category`, `series`, `author`, `readTime` | `authorRole`, `tags`, `cover` |
+| Briefs | `title`, `summary`, `date`, `category`, `methodology` | `tags`, `takeaways`, `dataSources`, `aiGenerated` |
+| Docs | `title`, `section`, `order`, `summary` | - |
+| Legal | `title`, `updated`, `summary` | - |
+
+Two fields behave differently from the rest. Blog `series` accepts **a string or a list**, so one
+post can belong to its topic series and to the cross-cutting "Learn" series at once - that is what
+`seriesSlugs: string[]` carries and what `BlogBrowser` matches with `includes`. Briefs do not store
+a cover at all: it is derived from `category` through `COVER_BY_CATEGORY`, so a brief's frontmatter
+stays short and the grid keeps one colour per topic.
+
+Docs `order` is unique across the whole archive and sets both the reading sequence and the section
+sequence - sections appear in the order their first page appears. That single number is what keeps
+the sidebar, the prev/next chain and the reading order in agreement.
+
+### Maths and headings
+
+Two remark-stage problems are solved in `src/lib/mdx/`.
+
+`preprocess-math.mjs` runs **on the raw source, before MDX parses it**. The usual `remark-math` +
+`rehype-katex` pair cannot do this here: the versions pinned in this project are pre-micromark
+majors and are inert under MDX 3, and by the time any plugin sees the tree, markdown has already
+claimed `_` for emphasis, `^`/`*` for text and `[` for a link label, so `$\varepsilon_{t-1}^2$`
+arrives split across several nodes and cannot be reassembled. The preprocessor rewrites each
+`$...$` into `<InlineMath tex={"..."} />` and each `$$...$$` into `<DisplayMath tex={"..."} />`,
+writing the TeX as a JavaScript string literal rather than a quoted attribute so backslashes,
+braces and newlines survive. Fenced code, inline code spans, escaped `\$` and frontmatter are
+never touched, so a shell snippet containing `$PATH` prints as written.
+
+A dollar sign is also the money symbol, so two guards stop a currency range becoming a formula:
+the opening delimiter must be followed immediately by non-whitespace, and the closing one must not
+be followed by a digit. `scripts/verify-math-preprocess.mjs` pins both - see "Testing".
+
+`remark-heading-ids.mjs` writes stable `id`s onto h2/h3 with one slug rule, while `extractHeadings`
+re-derives the same ids from the raw source for the sidebar. Both use `slugify` from the same
+module, so the Contents box and the rendered heading can never drift. `rehype-slug` is deliberately
+not used.
+
+`katex/dist/katex.min.css` is imported by `MdxContent.tsx` only, so the index pages never ship it.
+
+## Blog (stage 8)
+
+`/blog` is a server page that hands `BlogBrowser` a plain array of summaries, so filtering, search
+and the series rail all run locally with no round trip. The browser holds one filter state across
+three controls: an "Explore series" rail (`BLOG_SERIES`, four declared topic collections), the
+ALL/GUIDE/TUTORIAL/RESEARCH/NEWS chips, and a search field. `FilterToolbar` and `EmptyState` are
+shared with Insights; a filter combination with no matches renders the empty state with a
+"Clear filters" action rather than an empty grid.
+
+`/blog/[slug]` renders `ArticleLayout` - a ~600px reading column plus a ~220px sticky rail, wrapper
+`pt-14` so the back link clears the fixed header, rail `lg:top-14`. The rail is assembled from
+exported pieces on the page rather than hard-coded in the layout: `RailShare` (copy-URL plus an X
+intent), `ContentsBox` built from `post.contents`, an optional CTA box, and `NewsletterForm`.
+Insights reuses the same shell and passes its own CTA.
+
+`/blog/learn` reuses `BlogBrowser` over the cross-cutting Learn series. `LEARN_SERIES` is declared
+on its own rather than appended to `BLOG_SERIES`, so the index's four-card rail is untouched.
+
+## Insights (stage 9)
+
+Structurally the blog's twin - same index shape minus the series rail, since a brief stands alone
+rather than belonging to a series, and the same `ArticleLayout` detail page. What differs is two
+boxes the blog does not have: "Key takeaways" above the body and "Methodology & data" below it,
+both rendered by `ArticleBox` in the rail box language. Every card and detail page carries
+`AiBadge`, stating up front that the copy is machine-drafted.
+
+The four sample briefs cover all four filter chips - VOLATILITY, MARKETS, IDEAS, MACRO - so no
+chip renders an empty grid on first visit. Every figure in them is flagged illustrative in the
+frontmatter, the body and the methodology box; none states observed market data and none makes a
+recommendation.
+
+Covers come from the category, not the file, so a brief's frontmatter stays short and the grid
+keeps one colour per topic.
+
+## Contact (stage 10)
+
+`/contact` is a server page; only `ContactForm` is a client component.
+
+The form and the route **share one contract** in `src/lib/contact.ts`: length limits, the topic
+list, a deliberately permissive email pattern, the honeypot field name and the success copy. The
+browser validates for immediate feedback and the route revalidates, because a client check is a
+convenience and never a guarantee. Inline errors appear on submit and then update live per field;
+focus moves to the first error in reading order; one persistent `aria-live="polite"` region stays
+mounted across every state, so a screen reader announces the transition rather than losing the
+node.
+
+`POST /api/contact` is a stub. It answers 400 for unparseable JSON, 422 with structured field
+errors, and 200 on success, and it answers a filled honeypot with a plain success so a scripted
+submission learns nothing. Nothing is logged - not the payload, not even on failure - because a
+debug line would write a name, an address and free text into the host's log retention.
+
+Two TODOs remain in the route: deliver through a transactional provider (Resend, Postmark or a
+forms service) with reply-to set to the submitter, and add rate limiting backed by a shared store.
+The success message says plainly that this preview is not wired to a mail provider, so the form
+does not lie to a visitor who uses it.
+
+## Auth (stage 10)
+
+`/auth/login` and `/auth/signup` are thin `noindex` server pages over `AuthPanel`, which renders the
+split shell: a 545px left panel carrying the serif line and a 9%-opacity GARCH(1,1) code backdrop,
+with the provider panel on the right. Below `lg` it collapses to one column and the backdrop
+becomes a slim band.
+
+Every provider pill runs over the **mock `AuthAdapter`** in `src/lib/auth.tsx`. Sign-up runs a
+client-side funnel - SIGN UP → ABOUT YOU → LET'S GO - with the stepper as orientation only; sign-in
+renders the same panel with the cross-links reversed and no step marked, because signing in is not
+one of the sign-up steps.
+
+No password is collected, hashed or stored anywhere. The seam is `getSession` / `signIn` /
+`signOut`; the header knows only `user`, `login` and `logout`, so swapping in NextAuth, Clerk or a
+session cookie touches one file. `AuthPanel.tsx:231` marks the spot where the real OAuth redirect
+belongs.
+
+## Docs, About, legal and the error routes (stage 11)
+
+`/docs` and `/docs/[...slug]` share `DocsLayout`: a three-column shell at `xl` (210px grouped
+sidebar, the body capped at 720px, a 180px "On this page" rail), two columns at `lg`, one below.
+The catch-all segment is used rather than `[slug]` so a future section can nest without a new
+route. `DocsNav` adds a client-side filter and a mobile disclosure; `OnThisPage` runs a scroll-spy
+with `IntersectionObserver`. `DocsLayout` also renders prev/next from `getDocNeighbours`, which
+reads the same `order` that drives the sidebar. `/docs` renders the first page of the reading order
+rather than redirecting, so the route works the same without JavaScript.
+
+`/about` is editorial only: a mission block, a four-stage method band, a "what we are not" list,
+and a **clearly marked team placeholder** with no invented people or credentials.
+
+`/terms`, `/privacy` and `/copyright` are thin pages over `LegalLayout`, a 720px column with a
+"Last updated" line and a Contents box once a page has three headings. All three carry
+`LEGAL_DRAFT_NOTICE` as a prominent banner - the notice lives in `src/lib/legal.ts` and is rendered
+by the layout, so a reader can never land on one of these pages without seeing it, and it
+disappears in one place once the copy is reviewed. All three are `robots: noindex` while they are
+drafts.
+
+`not-found.tsx` and `error.tsx` both sit inside the root layout, so the header and footer stay.
+The error boundary shows `error.digest` only when present, labelled as a reference, and reports
+nothing anywhere; `reset` is wired to "Try again".
+
+## Stubs and seams
+
+Everything below is deliberately unfinished rather than overlooked. Each has a marked seam.
+
+| Area | State | Seam |
+| --- | --- | --- |
+| Contact delivery | Validates and accepts, delivers nothing | `src/app/api/contact/route.ts` TODO |
+| Contact rate limiting | None - handler is stateless | Same file; needs a shared store or host edge rules |
+| Auth | Mock adapter, fake session in `localStorage` | `AuthAdapter` in `src/lib/auth.tsx` |
+| Newsletter | No backend; submitting swaps the field for a confirmation | `NewsletterForm.tsx` |
+| Hero and Services stats | `HERO_STATS` / `SERVICE_STATS` are unverified placeholders | `TODO(placeholder)` on both |
+| Trust strip | Six third-party marks, no permission on record | `TODO(placeholder)` on `TRUST_MARKS` |
+| Social links | Placeholder URLs and self-authored glyphs | `TODO(placeholder)` on `FOOTER_SOCIALS` |
+| Provider marks | Placeholder artwork in `AuthIcons.tsx` | Swap with the real OAuth wiring |
+| `/styleguide` | Temporary internal page, `noindex` | Delete before launch |
+
+Done in stage 12, and no longer stubs: `robots.txt`, `sitemap.xml` and the share image all exist
+(see "Launch readiness"). Nothing in the codebase reads `process.env`. Any real provider will
+introduce the first server-only secret and the first `.env.local`.
+
+## Launch readiness (stage 12)
+
+Three site-level pieces that every page depends on but no page renders.
+
+| File | Emits | Notes |
+| --- | --- | --- |
+| `src/app/robots.ts` | `/robots.txt` | Allows all, disallows `/styleguide`, `/auth/` and `/api/`, and points at the sitemap. `host` is set to the canonical origin. |
+| `src/app/sitemap.ts` | `/sitemap.xml` | 21 URLs: 8 static routes, 3 posts, 4 briefs and 6 docs pages. Derived from the same content layers the routes use, so publishing an MDX file adds it here with no second edit. |
+| `src/app/opengraph-image.jpg` | the share image | 1200x630, 124 KB, picked up by the Next file convention for every route that does not define its own. |
+
+**What the sitemap deliberately omits.** `/styleguide` is temporary; `/auth/*` and `/api/*` are not
+public content; and `/terms`, `/privacy` and `/copyright` are **legal drafts**. The drafts are
+noindexed rather than disallowed, and that distinction matters: listing a noindex URL in a sitemap
+asks a crawler to fetch a page it is then told to drop, and disallowing it in `robots.txt` would
+stop the crawler reading the noindex at all - which is the classic route by which a "hidden" draft
+ends up indexed from an external link. They are crawlable, noindexed, and absent from the sitemap.
+They join it when the DRAFT banner comes off.
+
+`lastModified` comes from frontmatter dates for posts and briefs, so a rebuild does not claim every
+page changed. Docs carry an `order` but no date, so they carry no `lastModified` rather than a
+fabricated one.
+
+**The canonical URL now lives in one place.** `src/lib/site.ts` exports `SITE_URL`, `SITE_NAME`,
+`SITE_TAGLINE`, `SITE_DESCRIPTION` and `absoluteUrl()`. Before stage 12 the literal
+`https://quantmetrics.online` appeared in 14 files as both `openGraph.url` values and two local
+`SITE_URL` constants; all of them now import from this module, and a repo-wide sweep asserts that
+the literal survives nowhere else.
+
+**The share image** is generated art, not a screenshot: the dark canvas, the accent mesh blobs, the
+`Glyph` mark, a serif headline and mono labels, in the site's own language. Two documented
+substitutions, because this machine has no network and the brand faces are woff2 (which Pillow
+cannot open): the typography uses Nimbus Roman / Nimbus Sans / Nimbus Mono PS, which are the URW
+clones of Times New Roman, Arial and Courier New - exactly the fallback faces `next/font/local`
+already declares for the serif, sans and mono families. If the real TTF builds of Newsreader and
+Inter Tight are ever dropped in, re-running `scripts/make-og.py` reproduces the image with them.
+
+It ships as **JPEG, not PNG**, and that is a measured decision rather than a default: a 24-bit PNG
+of a smooth gradient plus grain ran to ~970 KB, and a 256-colour quantisation only reached 417 KB.
+WhatsApp drops share images over ~300 KB, so q92 JPEG at 124 KB is the version that actually
+unfurls everywhere. There is no alpha in the artwork, so nothing is lost.
+
+It is reproducible: `scripts/make-og.py` renders it with Pillow and numpy, and resolves fonts per
+platform (it prefers TTF builds in `src/fonts/` if they are ever added, then falls back to the URW
+clones on Linux, Times/Arial/Consolas on Windows, or Times/Helvetica/Menlo on macOS). Run it with
+`python3 scripts/make-og.py`; it writes `src/app/opengraph-image.jpg` in place. Pillow and numpy
+are build-time conveniences, not project dependencies - they are not in `package.json`.
+
+`twitter.card` is set to `summary_large_image` in the root layout, which is what makes X and
+similar surfaces render the image wide rather than as a thumbnail.
+
 ## Interaction states
 Every interactive element gets a **2px periwinkle focus ring at 2px offset** through the
 global `:focus-visible` rule in `globals.css`.
@@ -458,7 +780,16 @@ global `:focus-visible` rule in `globals.css`.
 | Auth login / logout | text → `--text` | avatar shows the user initials | ring | Login is disabled while the session resolves |
 | Navbar over a dark hero | on-gradient tone while unscrolled (home mesh and the Services dark hero), then theme colours past 24px | - | - | - |
 | Corner theme toggle | hover fills `--bg-hover` | `aria-pressed` reflects dark mode | ring | - |
-| Trust strip cell | mark 60% to 100% opacity; the mark is painted in `currentColor`, so it follows the active theme | - | - | - |
+| Trust strip cell | mark 80% to 100% opacity; the mark is painted in `currentColor`, so it follows the active theme | - | - | - |
+| Blog / brief card grid | - | filter chips and search narrow the grid; no matches render `EmptyState` with Clear filters | ring on cards and controls | - |
+| Article rail share | pill fills `--bg-hover`; the copy button swaps its label to a confirmation | - | ring | - |
+| On this page | - | the heading nearest the top of the viewport is marked | ring | - |
+| Docs sidebar | link hover to `--text` | active page marked; the filter narrows the list | ring | - |
+| Auth provider pill | border to `--text`, fill to `--fill-soft` | spinner replaces the label while pending, `aria-busy` | ring | all pills disabled while one is pending |
+| Auth stepper | step label to `--text` | current step marked; prior steps are selectable | ring | - |
+| Contact form | - | submit shows a spinner, then a success panel or a form-level error | ring; focus moves to the first error | fields disabled while submitting |
+| Legal draft banner | - | static | - | - |
+| 404 / error | button and text-link hovers as elsewhere | - | ring | - |
 | Feature trio card | pink-to-coral gradient fill plus blurred glow, copy and icon to `--on-gradient` | `active` forces the same state | focus-within matches hover | - |
 | KPI tile | - | - | - | - |
 | Brief card | border to `--text` 40%, cover scales 1.03, title underlined | - | ring (the whole card is the link) | - |
@@ -486,7 +817,29 @@ global `:focus-visible` rule in `globals.css`.
 - The footer's social links and marks are placeholders (see the stage 4 section above).
 - The trust strip now renders the client-supplied **logo artwork**, so all six marks must be confirmed in writing or removed before launch - a logo wall on a financial site reads as an endorsement even when no wording claims one. The artwork is painted through a CSS mask in `currentColor` (see `mark-mask` in `src/app/globals.css`), which is also what keeps it visible on the light canvas. See the `TODO(placeholder)` on `TRUST_MARKS` in `src/lib/navigation.ts`.
 - The hero stats band and the preview KPIs are **client-supplied placeholders pending verification** (`HERO_STATS` in `Hero.tsx`, `SAMPLE_METRICS` in `lib/sample-series.ts`). They are laid out as final but are not measured figures; confirm or replace them before launch.
-- The home preview chart and its three KPI tiles are drawn from a seeded **synthetic** series, labelled "Sample data" in the panel, in the section copy and in the caption. They are not market data, not a backtest and not a performance claim.
-- The three briefs on the home page are placeholder entries with "Placeholder" dates; nothing in them states a figure.
+- The home preview chart and its three KPI tiles are drawn from a seeded **synthetic** series, labelled "Sample data" in the panel, in the section copy and in the caption. They are not market data, not a backtest and not a performance claim. Only the first tile is derived from the series; the "Rolling return" and "Max drawdown" values are fixed strings in `SAMPLE_METRICS`.
+- The three briefs on the home page are no longer a hard-coded list: `HOME_BRIEFS` takes the three newest entries from the real brief archive, so publishing a brief updates the home row with no second edit. Their dates are real frontmatter dates, and every figure in them is flagged illustrative in the body.
+- The four sample briefs, three sample posts and six docs pages are original illustrative copy. No legal text is copied from anywhere, no person or credential is invented, and every numeric example is marked as illustrative sample data.
 - The Services stats band figures (`SERVICE_STATS` in `src/lib/services.ts`) are placeholders on the same footing as `HERO_STATS`: laid out as final, not measured, and to be confirmed or removed before launch.
 - The Services page makes no performance claim. Its copy describes methods and process, and the "Sample dashboards" item is explicitly about sample data.
+- The Insights and Blog detail pages repeat the "not investment advice" line under the body; the brief pages add the `AiBadge`, so machine-drafted copy is disclosed on the card and on the page.
+
+## Testing
+
+There is no test runner and no network to install one, so `scripts/verify-math-preprocess.mjs` is a
+dependency-free `node:assert` script rather than a framework suite:
+
+```bash
+npm run verify:math
+```
+
+It pins 26 assertions over the maths preprocessor. The interesting half is the **currency** cases:
+a dollar sign is both the TeX delimiter and the money symbol, so a naive rule turns "costs $5 and
+$10" into one formula spanning the gap between two prices. `$100`, `$5 to $10`, `costs $5 and $10`,
+thousands separators, a trailing `.$`, `$PATH` inside inline code, a fenced shell block and an
+escaped `\$` must all survive untouched, while `$x_t$`, `$\sigma^2$`, `$\varepsilon_{t-1}^2$` and
+`$$...$$` must still convert.
+
+Everything else is verified by the three build gates (`typecheck`, `lint`, `build`) and by hand in
+a browser. There are no component or route tests, and no accessibility automation.
+

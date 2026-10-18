@@ -158,9 +158,9 @@ export function Navbar() {
       <Container className="relative pt-3">
         <div
           className={cn(
-            "relative flex h-6.5 items-center rounded-pill border",
+            "relative flex h-6.5 items-center rounded-pill border border-solid",
             "transition-colors duration-[var(--dur-base)] ease-[var(--ease-standard)]",
-            showBackdrop ? "border-line bg-bg/60 backdrop-blur-md" : "border-line/60 bg-transparent",
+            showBackdrop ? "border-line-grid bg-bg/60 backdrop-blur-md" : "border-line-grid bg-transparent",
             // White-on-gradient while the bar floats over the mesh. Scoped to the
             // bar alone: the mega-menu panel below keeps the page theme.
             overDarkHero && "on-gradient-tone",
